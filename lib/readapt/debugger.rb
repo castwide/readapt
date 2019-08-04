@@ -12,11 +12,15 @@ module Readapt
 
     attr_accessor :file
 
-    def initialize
+    attr_reader :connection
+
+    def initialize connection = :attach
       @stack = []
       @trace_threads = Set.new
       @active_threads = Set.new
       @running = false
+      @attached = 0
+      @connection = connection
     end
 
     def launch file
@@ -34,8 +38,9 @@ module Readapt
       end
       yield if block_given?
       Monitor.stop
-      notify_observers 'terminated', nil
       @running = false
+      changed
+      notify_observers 'terminated', nil
     end
 
     def self.run &block

@@ -28,7 +28,6 @@ module Readapt
     end
 
     def format result
-      # remote.empty? ? write_line(result.to_terminal) : write(result.to_protocol)
       write_line result.to_protocol.to_json
     end
 
@@ -39,6 +38,10 @@ module Readapt
         process message
       end
       @@debugger.add_observer self
+    end
+
+    def closing
+      @@debugger.delete_observer(self)
     end
 
     def receiving data
