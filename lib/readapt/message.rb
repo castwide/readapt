@@ -15,6 +15,7 @@ require 'readapt/message/next'
 require 'readapt/message/step_in'
 require 'readapt/message/step_out'
 require 'readapt/message/disconnect'
+require 'readapt/message/attach'
 
 module Readapt
   module Message
@@ -36,6 +37,7 @@ module Readapt
     end
 
     register 'initialize', Message::Initialize
+    register 'attach', Message::Attach
     register 'launch', Message::Launch
     register 'setBreakpoints', Message::SetBreakpoints
     register 'setExceptionBreakpoints', Message::SetExceptionBreakpoints
