@@ -62,7 +62,7 @@ static int match_step(thread_reference_t *ptr)
 }
 
 static void
-monitor_to_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, ID event)
+monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
 	VALUE bind, bid, snapshot, result;
 
@@ -77,6 +77,8 @@ monitor_to_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr
 		Qnil,
 		ID2SYM(event)
 	);
+	rb_io_flush(rb_stdout);
+	rb_io_flush(rb_stderr);
 	rb_funcall(debugProc, rb_intern("call"), 1, snapshot);
 	result = rb_funcall(snapshot, rb_intern("control"), 0);
 	ptr->cursor = ptr->depth;
@@ -104,7 +106,7 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				if (match_breakpoint(tp_file, tp_line) || match_step(ptr))
 				{
-					monitor_to_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
+					monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
 				}
 				ptr->prev_file = tp_file;
 				ptr->prev_line = tp_line;

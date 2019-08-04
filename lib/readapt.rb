@@ -15,9 +15,6 @@ require 'readapt/adapter'
 require 'readapt/readapt'
 require 'readapt/shell'
 
-STDOUT.sync
-STDERR.sync
-
 module Readapt
   class Error < StandardError; end
   # Your code goes here...

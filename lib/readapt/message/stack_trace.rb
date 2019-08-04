@@ -3,11 +3,9 @@
 module Readapt
   module Message
     class StackTrace < Base
-      @@id = 0
       def run
         # here = inspector.debugger.frames.select { |frm| frm.thread_id == arguments['threadId'] }
         here = [inspector.frame]
-        STDERR.puts inspector.inspect
         set_body({
           stackFrames: here.map do |frm|
             {
