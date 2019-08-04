@@ -76,6 +76,7 @@ module Readapt
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
         write envelope
         @@inspector = nil unless @@inspector && @@inspector.control == :pause
+        close if data['command'] == 'disconnect'
         return unless data['command'] == 'initialize'
         json = {
           type: 'event',
