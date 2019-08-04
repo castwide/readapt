@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Attach < Base
       def run
-        inspector.debugger.connection = :attach
+        # Nothing to do
       end
     end
   end
