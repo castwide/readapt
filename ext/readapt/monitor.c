@@ -25,10 +25,10 @@ static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
 static int match_breakpoint(VALUE file, int line)
 {
 	VALUE bps, b;
-	int len, i;
+	long len, i;
 
 	bps = rb_funcall(breakpoints, rb_intern("for"), 1, file);
-	len = NUM2INT(rb_funcall(bps, rb_intern("length"), 0));
+	len = rb_array_len(bps);
 	for (i = 0; i < len; i++)
 	{
 		b = rb_ary_entry(bps, i);
@@ -92,7 +92,7 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 
 	ref = thread_current_reference();
-	if (ref != Qnil)
+	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
 		if (knownBreakpoints || ptr->control != rb_intern("continue"))
@@ -106,9 +106,9 @@ process_line_event(VALUE tracepoint, void *data)
 				{
 					monitor_to_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
 				}
+				ptr->prev_file = tp_file;
+				ptr->prev_line = tp_line;
 			}
-			ptr->prev_file = tp_file;
-			ptr->prev_line = tp_line;
 		}
 		else
 		{
@@ -123,7 +123,7 @@ process_call_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
 	thread_reference_t *ptr;
-	
+
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{

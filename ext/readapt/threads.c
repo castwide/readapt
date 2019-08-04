@@ -56,7 +56,7 @@ VALUE thread_current_reference()
 
 VALUE thread_reference(VALUE thr)
 {
-	return rb_hash_aref(threads, thr);	
+	return rb_hash_aref(threads, rb_obj_id(thr));
 }
 
 VALUE thread_add_reference(VALUE thr)
@@ -64,7 +64,7 @@ VALUE thread_add_reference(VALUE thr)
 	VALUE ref;
 
 	ref = thread_reference_new(thr);
-	rb_hash_aset(threads, thr, ref);
+	rb_hash_aset(threads, rb_obj_id(thr), ref);
 	return ref;
 }
 
