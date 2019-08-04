@@ -4,8 +4,7 @@ module Readapt
   module Message
     class Attach < Base
       def run
-        STDERR.puts "Attaching"
-        # inspector.debugger.launch inspector.debugger.file
+        raise RuntimeError, 'Attaching to running process is not supported yet'
       end
     end
   end
