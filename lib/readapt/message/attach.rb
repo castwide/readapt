@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Attach < Base
       def run
-        raise RuntimeError, 'Attaching to running process is not supported yet'
+        # Nothing to do
       end
     end
   end
