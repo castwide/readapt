@@ -5,20 +5,27 @@ module Readapt
     # @return [String]
     attr_reader :name
 
-    # @return [Integer]
-    attr_reader :reference
-
-    def initialize name, reference
+    # @param name [String, Symbol]
+    # @param object [Object]
+    def initialize name, object
       @name = name
-      @reference = reference
-      object = ObjectSpace._id2ref(reference)
-      @value = object.to_s
-      @type = object.class.to_s
+      @object = object
+    end
+
+    # @return [Integer]
+    def reference
+      @reference ||= unstructured || object.object_id
     end
 
     # @return [String]
     def value
-      object.to_s
+      @value ||= if object.nil?
+        'nil'
+      elsif show_class_for_value?
+        "#{empty? ? 'Empty ' : ''}#{object.class}"
+      else
+        object.to_s
+      end
     end
 
     # @return [String]
@@ -28,8 +35,32 @@ module Readapt
 
     private
 
-    def object
-      @object ||= ObjectSpace._id2ref(reference)
+    UNSTRUCTURED_TYPES = [NilClass, String, TrueClass, FalseClass, Numeric]
+    private_constant :UNSTRUCTURED_TYPES
+
+    # @return [Object]
+    attr_reader :object
+
+    # @return [Integer, nil]
+    def unstructured
+      0 if UNSTRUCTURED_TYPES.any? { |cls| object.is_a?(cls) } || no_references?
+    end
+
+    # @return [Boolean]
+    def show_class_for_value?
+      object.is_a?(Array) || object.is_a?(Hash)
+    end
+
+    def no_references?
+      (object.instance_variables.empty? && object.class.class_variables.empty?) && (!enumerable? || object.empty?)
+    end
+
+    def enumerable?
+      object.is_a?(Array) || object.is_a?(Hash)
+    end
+
+    def empty?
+      enumerable? && object.empty?
     end
   end
 end

@@ -20,10 +20,10 @@ module Readapt
       result = []
       @binding.local_variables.each do |sym|
         var = @binding.local_variable_get(sym)
-        result.push Variable.new(sym, var.object_id)
+        result.push Variable.new(sym, var)
       end
       if @binding.receiver != TOPLEVEL_BINDING.receiver
-        result.push Variable.new(:self, @binding.receiver.object_id)
+        result.push Variable.new(:self, @binding.receiver)
       end
       result
     end
@@ -32,16 +32,16 @@ module Readapt
       result = []
       @binding.local_variables.each do |sym|
         var = @binding.local_variable_get(sym)
-        result.push Variable.new(sym, var.object_id)
+        result.push Variable.new(sym, var)
       end
       if @binding.receiver != TOPLEVEL_BINDING.receiver
         @binding.instance_variables.each do |sym|
           var = @binding.receiver.instance_variable_get(sym)
-          result.push Variable.new(sym, var.object_id)
+          result.push Variable.new(sym, var)
         end
         @binding.class.class_variables.each do |sym|
           var = @binding.receiver.class.class_variable_get(sym)
-          result.push Variable.new(sym, var.object_id)
+          result.push Variable.new(sym, var)
         end
       end
       result
