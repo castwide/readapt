@@ -34,6 +34,7 @@ module Readapt
       end
       yield if block_given?
       Monitor.stop
+      notify_observers 'terminated', nil
       @running = false
     end
 

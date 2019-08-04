@@ -46,14 +46,21 @@ module Readapt
     end
 
     def update event, thread_id
-      json = {
-        type: 'event',
-        event: 'stopped',
-        body: {
-          reason: event,
-          threadId: thread_id
-        }
-      }.to_json
+      json = if event == 'terminated'
+        {
+          type: 'event',
+          event: 'terminated'
+        }.to_json
+      else
+        {
+          type: 'event',
+          event: 'stopped',
+          body: {
+            reason: event,
+            threadId: thread_id
+          }
+        }.to_json
+      end
       envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
       write envelope
     end
