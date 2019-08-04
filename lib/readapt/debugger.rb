@@ -23,7 +23,6 @@ module Readapt
       Thread.new do
         # run { TOPLEVEL_BINDING.instance_eval { load file } }
         run { load File.absolute_path(file) }
-        Backport.stop
       end
     end
 

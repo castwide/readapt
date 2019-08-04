@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Disconnect < Base
       def run
-        Backport.stop
+        Monitor.stop
       end
     end
   end
