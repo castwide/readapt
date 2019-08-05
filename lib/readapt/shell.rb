@@ -2,6 +2,13 @@ require 'thor'
 
 module Readapt
   class Shell < Thor
+    map %w[--version -v] => :version
+
+    desc "--version, -v", "Print the version"
+    def version
+      puts Readapt::VERSION
+    end
+
     desc 'server [FILE]', 'Run a DAP server'
     def serve
       Backport.run do
