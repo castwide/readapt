@@ -7,8 +7,7 @@ module Readapt
         # HACK: Wait a moment to make sure the output is flushed
         # @todo Find a better way
         sleep 1
-        Monitor.stop
-        Backport.stop if inspector.debugger.launched?
+        inspector.debugger.disconnect
       end
     end
   end

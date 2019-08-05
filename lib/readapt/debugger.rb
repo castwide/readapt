@@ -7,6 +7,7 @@ require 'set'
 module Readapt
   class Debugger
     include Observable
+    include Finder
 
     attr_reader :monitor
 
@@ -18,29 +19,40 @@ module Readapt
       @active_threads = Set.new
       @running = false
       @attached = false
+      @request = nil
+      @config = {}
+      @original_args = ARGV.clone
     end
 
-    def attach program
-      @attached = true
-      @file = program
+    def attach arguments
+      @file = Readapt.normalize_path(find(arguments['program']))
+      @config = arguments
+      @request = :attach
+    rescue LoadError => e
+      STDERR.puts e.message
     end
 
-    def launch program
-      @file = program
+    def launch arguments
+      @file = Readapt.normalize_path(find(arguments['program']))
+      @config = arguments
+      @request = :launch
+    rescue LoadError => e
+      STDERR.puts e.message
     end
 
     def launched?
-      !@attached
+      @request == :launch
     end
 
     def attached?
-      @attached
+      @request == :attach
     end
 
     def start
       Thread.new do
-        # run { TOPLEVEL_BINDING.instance_eval { load file } }
+        set_program_argv
         run { load File.absolute_path(file) }
+        set_original_argv
       end
     end
 
@@ -51,6 +63,10 @@ module Readapt
         debug snapshot
       end
       yield if block_given?
+    rescue Exception => e
+      STDERR.puts e.message
+      STDERR.puts e.backtrace.join("\n")
+    ensure
       Monitor.stop
       @running = false
       changed
@@ -63,6 +79,12 @@ module Readapt
         output: data,
         category: category
       })
+    end
+
+    def disconnect
+      Monitor.stop
+      @request = nil
+      Backport.stop if inspector.debugger.launched?
     end
 
     def self.run &block
@@ -86,6 +108,16 @@ module Readapt
       end
       snapshot.control = inspector.control
       # @frames.delete frame
+    end
+
+    def set_program_argv
+      ARGV.clear
+      ARGV.concat(@config['programArgs'] || [])
+    end
+
+    def set_original_argv
+      ARGV.clear
+      ARGV.concat @original_args
     end
   end
 end

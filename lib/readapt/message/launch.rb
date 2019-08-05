@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Launch < Base
       def run
-        inspector.debugger.launch Readapt.normalize_path(arguments['program'])
+        inspector.debugger.launch arguments
       end
     end
   end
