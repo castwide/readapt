@@ -34,9 +34,7 @@ module Readapt
     end
 
     def opening
-      # STDERR.puts "WOAH NELLY #{remote}"
       if !@@stdout
-        STDERR.puts "Setting up the damn STDOUT"
         @@stdout = self
         remote[:client] = :stdout
       elsif !@@stderr
@@ -61,34 +59,17 @@ module Readapt
       if remote[:client] == :user
         @data_reader.receive data
       else
-        STDERR.puts "Data from stdout"
-        @@debugger.output data
+        @@debugger.output data, remote[:client]
       end
     end
 
     def update event, data
-      json = if event == 'terminated'
-        {
-          type: 'event',
-          event: 'terminated'
-        }.to_json
-      elsif event == 'output'
-        {
-          type: 'event',
-          event: 'output',
-          category: 'console',
-          output: data
-        }.to_json
-      else
-        {
-          type: 'event',
-          event: 'stopped',
-          body: {
-            reason: event,
-            threadId: data
-          }
-        }.to_json
-      end
+      return unless @@client == self
+      json = {
+        type: 'event',
+        event: event,
+        body: data
+      }.to_json
       envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
       write envelope
     end

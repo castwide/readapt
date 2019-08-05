@@ -57,8 +57,12 @@ module Readapt
       notify_observers 'terminated', nil
     end
 
-    def output data
-      notify_observers 'output', data
+    def output data, category = :console
+      changed
+      notify_observers('output', {
+        output: data,
+        category: category
+      })
     end
 
     def self.run &block
@@ -69,7 +73,10 @@ module Readapt
 
     def debug snapshot
       changed
-      notify_observers snapshot.event, Thread.current.object_id
+      notify_observers('stopped', {
+        reason: snapshot.event,
+        threadId: Thread.current.object_id
+      })
       frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id, snapshot.thread_id)
       # frames.push frame
       inspector = Inspector.new(self, frame)
