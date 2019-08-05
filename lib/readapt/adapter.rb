@@ -48,11 +48,18 @@ module Readapt
       @data_reader.receive data
     end
 
-    def update event, thread_id
+    def update event, data
       json = if event == 'terminated'
         {
           type: 'event',
           event: 'terminated'
+        }.to_json
+      elsif event == 'output'
+        {
+          type: 'event',
+          event: 'output',
+          category: 'console',
+          output: data
         }.to_json
       else
         {
@@ -60,7 +67,7 @@ module Readapt
           event: 'stopped',
           body: {
             reason: event,
-            threadId: thread_id
+            threadId: data
           }
         }.to_json
       end

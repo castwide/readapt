@@ -57,6 +57,10 @@ module Readapt
       notify_observers 'terminated', nil
     end
 
+    def output data
+      notify_observers 'output', data
+    end
+
     def self.run &block
       new.run &block
     end

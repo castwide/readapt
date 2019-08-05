@@ -22,6 +22,7 @@ module Readapt
         Thread.new do
           Readapt::Adapter.host debugger
           Backport.prepare_tcp_server host: '127.0.0.1', port: 1234, adapter: Readapt::Adapter
+          Backport.prepare_stdio_server adapter: Readapt::Outputter
           STDERR.puts "Readapt Debugger is listening PORT=1234"
         end
       end

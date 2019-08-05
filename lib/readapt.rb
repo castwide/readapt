@@ -12,6 +12,7 @@ require 'readapt/inspector'
 require 'readapt/message'
 require 'readapt/variable'
 require 'readapt/adapter'
+require 'readapt/outputter'
 require 'readapt/readapt'
 require 'readapt/shell'
 
