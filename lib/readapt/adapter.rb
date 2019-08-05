@@ -7,6 +7,8 @@ module Readapt
     # @!parse include Backport::Adapter
 
     # @todo Support multiple clients?
+    @@stdout = nil
+    @@stderr = nil
     @@client = nil
     @@inspector = nil
     @@debugger = nil
@@ -32,12 +34,23 @@ module Readapt
     end
 
     def opening
-      @@client = self
-      @data_reader = DataReader.new
-      @data_reader.set_message_handler do |message|
-        process message
+      # STDERR.puts "WOAH NELLY #{remote}"
+      if !@@stdout
+        STDERR.puts "Setting up the damn STDOUT"
+        @@stdout = self
+        remote[:client] = :stdout
+      elsif !@@stderr
+        @@stderr = self
+        remote[:client] = :stderr
+      else
+        @@client = self
+        remote[:client] = :user
+        @@debugger.add_observer self
+        @data_reader = DataReader.new
+        @data_reader.set_message_handler do |message|
+          process message
+        end
       end
-      @@debugger.add_observer self
     end
 
     def closing
@@ -45,7 +58,12 @@ module Readapt
     end
 
     def receiving data
-      @data_reader.receive data
+      if remote[:client] == :user
+        @data_reader.receive data
+      else
+        STDERR.puts "Data from stdout"
+        @@debugger.output data
+      end
     end
 
     def update event, data
