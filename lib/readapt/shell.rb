@@ -29,8 +29,8 @@ module Readapt
         stdout = TCPSocket.new options[:host], options[:port]
         stderr = TCPSocket.new options[:host], options[:port]
         STDERR.puts "Readapt Debugger is listening PORT=#{options[:port]}"
-        STDOUT.reopen stdout
-        STDERR.reopen stderr
+        stdout.reopen STDOUT
+        stderr.reopen STDERR
       end
     end
   end
