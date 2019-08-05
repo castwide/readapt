@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Attach < Base
       def run
-        # Nothing to do
+        inspector.debugger.attach Readapt.normalize_path(arguments['program'])
       end
     end
   end

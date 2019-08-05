@@ -10,20 +10,34 @@ module Readapt
 
     attr_reader :monitor
 
-    attr_accessor :file
+    attr_reader :file
 
-    attr_reader :connection
-
-    def initialize connection = :attach
+    def initialize
       @stack = []
       @trace_threads = Set.new
       @active_threads = Set.new
       @running = false
-      @attached = 0
-      @connection = connection
+      @attached = false
     end
 
-    def launch file
+    def attach program
+      @attached = true
+      @file = program
+    end
+
+    def launch program
+      @file = program
+    end
+
+    def launched?
+      !@attached
+    end
+
+    def attached?
+      @attached
+    end
+
+    def start
       Thread.new do
         # run { TOPLEVEL_BINDING.instance_eval { load file } }
         run { load File.absolute_path(file) }

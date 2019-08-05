@@ -5,7 +5,7 @@ module Readapt
     class Disconnect < Base
       def run
         Monitor.stop
-        Backport.stop if inspector.debugger.connection == :launch
+        Backport.stop if inspector.debugger.launched?
       end
     end
   end

@@ -4,7 +4,7 @@ module Readapt
   module Message
     class ConfigurationDone < Base
       def run
-        inspector.debugger.launch inspector.debugger.file
+        inspector.debugger.start
       end
     end
   end
