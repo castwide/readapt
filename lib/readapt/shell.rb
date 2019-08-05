@@ -10,7 +10,9 @@ module Readapt
       puts Readapt::VERSION
     end
 
-    desc 'server [FILE]', 'Run a DAP server'
+    desc 'serve', 'Run a DAP server'
+    option :host, type: :string, aliases: :h, description: 'The server host', default: '127.0.0.1'
+    option :port, type: :numeric, aliases: :p, description: 'The server port', default: 1234
     def serve
       Backport.run do
         Signal.trap("INT") do
@@ -22,11 +24,11 @@ module Readapt
         debugger = Readapt::Debugger.new
         Thread.new do
           Readapt::Adapter.host debugger
-          Backport.prepare_tcp_server host: '127.0.0.1', port: 1234, adapter: Readapt::Adapter
+          Backport.prepare_tcp_server host: options[:host], port: options[:port], adapter: Readapt::Adapter
         end
-        stdout = TCPSocket.new '127.0.0.1', 1234
-        stderr = TCPSocket.new '127.0.0.1', 1234
-        STDERR.puts "Readapt Debugger is listening PORT=1234"
+        stdout = TCPSocket.new options[:host], options[:port]
+        stderr = TCPSocket.new options[:host], options[:port]
+        STDERR.puts "Readapt Debugger is listening PORT=#{options[:port]}"
         STDOUT.reopen stdout
         STDERR.reopen stderr
       end
