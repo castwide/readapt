@@ -8,7 +8,7 @@
 /tmp/
 *.so
 /.vscode/
-/Gemfile.lock
+Gemfile.lock
 
 # rspec failure tracking
 .rspec_status
