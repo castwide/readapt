@@ -76,7 +76,18 @@ VALUE thread_delete_reference(VALUE thr)
 
 void thread_pause()
 {
+	VALUE refs, r;
+	thread_reference_t *ptr;
+	long len, i;
 
+	refs = rb_funcall(threads, rb_intern("values"), 0);
+	len = rb_array_len(refs);
+	for (i = 0; i < len; i++)
+	{
+		r = rb_ary_entry(refs, i);
+		ptr = thread_reference_pointer(r);
+		ptr->control = rb_intern("pause");
+	}
 }
 
 void thread_reset()

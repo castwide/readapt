@@ -62,6 +62,7 @@ module Readapt
       # raise RuntimeError, 'Debugger is already running' if @running
       set_program_args
       @running = true
+      @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
       Monitor.start do |snapshot|
         debug snapshot
       end
@@ -107,14 +108,14 @@ module Readapt
         threadId: ::Thread.current.object_id
       })
       thread = (@threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id))
-      thread.control = snapshot.control
+      thread.control = :pause
       @stopped.add thread
       frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
       thread.frames.push frame
       @frames[frame.local_id] = frame
       sleep 0.01 until thread.control != :pause
       @frames.delete frame.local_id
-      thread.frames.delete frame.local_id
+      thread.frames.delete frame
       @stopped.delete thread
       snapshot.control = thread.control
     end
