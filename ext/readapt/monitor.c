@@ -100,21 +100,24 @@ process_line_event(VALUE tracepoint, void *data)
 	int tp_line;
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
+	int threadPaused;
 
 	ref = thread_current_reference();
 	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
+		//threadPaused = (monitorPaused || ptr->control == rb_intern("pause"));
 		if (ptr->depth > 0)
 		{
-			if (monitorPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
+			threadPaused = (ptr->control == rb_intern("pause"));
+			if (threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
 				tp_file = rb_tracearg_path(tp);
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
-				if (monitorPaused || !match_line(tp_file, tp_line, ptr))
+				if (threadPaused || !match_line(tp_file, tp_line, ptr))
 				{
-					if (monitorPaused || match_breakpoint(tp_file, tp_line) || match_step(ptr))
+					if (threadPaused || match_breakpoint(tp_file, tp_line) || match_step(ptr))
 					{
 						monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
 					}
@@ -242,7 +245,7 @@ monitor_pause_s(VALUE self, VALUE id)
 	ref = thread_reference_id(id);
 	if (!RB_NIL_P(ref))
 	{
-		ptr = thread_reference_pointer(ptr);
+		ptr = thread_reference_pointer(ref);
 		ptr->control = rb_intern("pause");
 	}
 }
@@ -264,7 +267,7 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 0);
 	rb_define_singleton_method(m_Monitor, "stop", monitor_disable_s, 0);
 	rb_define_singleton_method(m_Monitor, "know_breakpoints", monitor_know_breakpoints_s, 0);
-	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 0);
+	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 1);
 
 	tpLine = rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, process_line_event, NULL);
 	tpCall = rb_tracepoint_new(Qnil, RUBY_EVENT_CALL | RUBY_EVENT_B_CALL | RUBY_EVENT_CLASS, process_call_event, NULL);
