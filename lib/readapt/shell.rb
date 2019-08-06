@@ -27,7 +27,7 @@ module Readapt
           Readapt::Adapter.host debugger
           Backport.prepare_tcp_server host: options[:host], port: options[:port], adapter: Readapt::Adapter
         end
-        STDERR.puts "Readapt Debugger is listening HOST=#{options[:host]} PORT=#{options[:port]}"
+        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]}"
         # Redirect STDOUT and STDERR through the adapter protocol
         # @todo This feature does not always work with STDERR, e.g, when
         #   running RSpec
