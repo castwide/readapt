@@ -6,7 +6,9 @@ module Readapt
       def run
         thread = debugger.thread(arguments['threadId'])
         thread.control = :continue
-        set_body({})
+        set_body({
+          allThreadsContinued: false
+        })
       end
     end
   end

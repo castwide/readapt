@@ -161,9 +161,10 @@ process_return_event(VALUE tracepoint, void *data)
 }
 
 static void
-process_thread_begin_event(VALUE self, void *data)
+process_thread_begin_event(VALUE tracepoint, void *data)
 {
 	VALUE list, here, prev, ref;
+	thread_reference_t *ptr;
 
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
 	here = rb_ary_pop(list);
@@ -176,7 +177,15 @@ process_thread_begin_event(VALUE self, void *data)
 				ref = thread_reference(prev);
 				if (!RB_NIL_P(ref))
 				{
-					thread_add_reference(here);
+					ref = thread_add_reference(here);
+					ptr = thread_reference_pointer(ref);
+					monitor_debug(
+						rb_funcall(tracepoint, rb_intern("path"), 0),
+						NUM2INT(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
+						tracepoint,
+						ptr,
+						rb_intern("thread_begin")
+					);
 				}
 			}
 		}
@@ -202,7 +211,8 @@ process_thread_end_event(VALUE tracepoint, void *data)
 static VALUE
 monitor_enable_s(VALUE self)
 {
-	VALUE previous;
+	VALUE previous, ref;
+	thread_reference_t *ptr;
 
 	if (rb_block_given_p()) {
 		debugProc = rb_block_proc();
@@ -210,7 +220,16 @@ monitor_enable_s(VALUE self)
 	} else {
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
-	thread_add_reference(rb_thread_current());
+	
+	ref = thread_add_reference(rb_thread_current());
+	ptr = thread_reference_pointer(ref);
+	monitor_debug(
+		Qnil,
+		0,
+		Qnil,
+		ptr,
+		rb_intern("thread_begin")
+	);
 
 	previous = rb_tracepoint_enabled_p(tpLine);
 	rb_tracepoint_enable(tpLine);

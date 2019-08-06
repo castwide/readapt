@@ -35,7 +35,7 @@ module Readapt
       STDERR.puts e.message
     end
 
-    # @return [Thread]
+    # @return [Readapt::Thread]
     def thread id
       @threads[id] || Thread::NULL_THREAD
     end
@@ -62,7 +62,7 @@ module Readapt
       # raise RuntimeError, 'Debugger is already running' if @running
       set_program_args
       @running = true
-      @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
+      # @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
       Monitor.start do |snapshot|
         debug snapshot
       end
@@ -103,24 +103,38 @@ module Readapt
     # return [void]
     def debug snapshot
       changed
-      if (snapshot.event == :thread_end)
+      if (snapshot.event == :thread_begin)
+        thr = Thread.new(snapshot.thread_id)
+        thr.control = :continue
+        @threads[snapshot.thread_id] = thr
+        notify_observers('thread', {
+          reason: 'started',
+          threadId: snapshot.thread_id
+        })
+        snapshot.control = :continue
+      elsif (snapshot.event == :thread_end)
+        thr = thread(snapshot.thread_id)
+        thr.control = :continue
         notify_observers('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id
         })
         @stopped.delete thread(snapshot.thread_id)
+        @threads.delete snapshot.thread_id
+        snapshot.control = :continue
       else
         notify_observers('stopped', {
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
-        thread = (@threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id))
+        #thread = @threads[snapshot.thread_id]
+        thread = self.thread(snapshot.thread_id)
         thread.control = :pause
         @stopped.add thread
         frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
         thread.frames.push frame
         @frames[frame.local_id] = frame
-        sleep 0.01 until thread.control != :pause || @stopped.empty?
+        sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
         @frames.delete frame.local_id
         thread.frames.delete frame
         @stopped.delete thread
