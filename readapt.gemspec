@@ -29,6 +29,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.extensions = ['ext/readapt/extconf.rb']
 
+  spec.required_ruby_version = '>= 2.1'
+
   spec.add_dependency 'backport', '~> 1.1'
   spec.add_dependency 'thor', '~> 0.20'
 
