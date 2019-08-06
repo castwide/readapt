@@ -6,19 +6,10 @@ module Readapt
   module Adapter
     # @!parse include Backport::Adapter
 
-    @@inspectors = []
     @@debugger = nil
 
     def self.host debugger
       @@debugger = debugger
-    end
-
-    def self.attach inspector
-      @@inspectors.push inspector
-    end
-
-    def self.attached?
-      !@@inspectors.empty?
     end
 
     def format result
@@ -58,7 +49,8 @@ module Readapt
     # @return [void]
     def process data
       # @todo Better solution than nil frames
-      message = Message.process(data, (@@inspectors.last || Inspector.new(@@debugger, nil)))
+      message = Message.process(data, @@debugger)
+      # message = Message.process(data, (@@inspectors.last || Inspector.new(@@debugger, nil)))
       if data['seq']
         json = {
           type: 'response',
@@ -70,7 +62,7 @@ module Readapt
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
         write envelope
         # @@inspector = nil unless @@inspector && @@inspector.control == :pause
-        @@inspectors.pop unless @@inspectors.empty? || @@inspectors.last.control == :pause
+        # @@inspectors.pop unless @@inspectors.empty? || @@inspectors.last.control == :pause
         close if data['command'] == 'disconnect'
         return unless data['command'] == 'initialize'
         json = {

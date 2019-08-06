@@ -13,10 +13,13 @@ module Readapt
 
     attr_reader :file
 
+    attr_reader :stopped
+
     def initialize
       @stack = []
-      @trace_threads = Set.new
-      @active_threads = Set.new
+      @threads = {}
+      @frames = {}
+      @stopped = Set.new
       @running = false
       @attached = false
       @request = nil
@@ -32,6 +35,15 @@ module Readapt
       STDERR.puts e.message
     end
 
+    # @return [Thread]
+    def thread id
+      @threads[id] || Thread::NULL_THREAD
+    end
+
+    def frame id
+      @frames[id] || Frame::NULL_FRAME
+    end
+
     def launched?
       @request == :launch
     end
@@ -41,7 +53,7 @@ module Readapt
     end
 
     def start
-      Thread.new do
+      ::Thread.new do
         run { load @file }
       end
     end
@@ -86,21 +98,24 @@ module Readapt
 
     private
 
+    # @param [Snapshot]
+    # return [void]
     def debug snapshot
       changed
       notify_observers('stopped', {
         reason: snapshot.event,
-        threadId: Thread.current.object_id
+        threadId: ::Thread.current.object_id
       })
-      frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id, snapshot.thread_id)
-      # frames.push frame
-      inspector = Inspector.new(self, frame)
-      Adapter.attach inspector
-      while Adapter.attached?
-        sleep 0.01
-      end
-      snapshot.control = inspector.control
-      # @frames.delete frame
+      thread = (@threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id))
+      thread.control = snapshot.control
+      @stopped.add thread
+      frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
+      thread.frames.push frame
+      @frames[frame.local_id] = frame
+      sleep 0.01 until thread.control != :pause
+      @frames.delete frame.local_id
+      thread.frames.delete frame.local_id
+      snapshot.control = thread.control
     end
 
     def set_program_args

@@ -6,12 +6,12 @@ module Readapt
       # @return [Hash]
       attr_reader :arguments
 
-      # @return [Inspector]
-      attr_reader :inspector
+      # @return [Debugger]
+      attr_reader :debugger
 
-      def initialize arguments, inspector
+      def initialize arguments, debugger
         @arguments = arguments
-        @inspector = inspector
+        @debugger = debugger
       end
 
       def run; end
@@ -24,8 +24,8 @@ module Readapt
         @body = hash
       end
 
-      def self.run arguments, inspector
-        new(arguments, inspector).run
+      def self.run arguments, debugger
+        new(arguments, debugger).run
       end
     end
   end

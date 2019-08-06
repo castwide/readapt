@@ -4,9 +4,10 @@ module Readapt
   module Message
     class Variables < Base
       def run
-        ref = arguments['variablesReference'].to_i
+        ref = arguments['variablesReference']
         # frame = inspector.debugger.frames.find { |frm| frm.local_id == ref }
-        frame = (inspector.frame.local_id == ref ? inspector.frame : nil)
+        # frame = (inspector.frame.local_id == ref ? inspector.frame : nil)
+        frame = debugger.frame(ref)
         vars = if frame
           frame.locals
         elsif ref == TOPLEVEL_BINDING.receiver.object_id

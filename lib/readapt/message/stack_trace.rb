@@ -4,22 +4,21 @@ module Readapt
   module Message
     class StackTrace < Base
       def run
-        # here = inspector.debugger.frames.select { |frm| frm.thread_id == arguments['threadId'] }
-        here = [inspector.frame]
+        frames = debugger.thread(arguments['threadId']).frames
         set_body({
-          stackFrames: here.map do |frm|
+          stackFrames: frames.map do |frm|
             {
               name: "#{File.basename(frm.location.file)}:#{frm.location.line}",
               source: {
                 name: File.basename(frm.location.file),
                 path: frm.location.file
               },
-              id: frm.object_id,
+              id: frm.local_id,
               line: frm.location.line,
               column: 0
             }
           end,
-          totalFrames: here.length
+          totalFrames: frames.length
         })
       end
     end

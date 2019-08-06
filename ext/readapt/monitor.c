@@ -157,7 +157,6 @@ process_thread_begin_event(VALUE self, void *data)
 {
 	VALUE list, here, prev, ref;
 
-	rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Adding a thread?"));
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
 	here = rb_ary_pop(list);
 	if (!RB_NIL_P(here))
@@ -169,7 +168,6 @@ process_thread_begin_event(VALUE self, void *data)
 				ref = thread_reference(prev);
 				if (!RB_NIL_P(ref))
 				{
-					rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Pow!!!!!!!!"));
 					thread_add_reference(here);
 				}
 			}

@@ -7,7 +7,7 @@ module Readapt
         # HACK: Wait a moment to make sure the output is flushed
         # @todo Find a better way
         sleep 1
-        inspector.debugger.disconnect
+        debugger.disconnect
       end
     end
   end

@@ -2,14 +2,11 @@
 
 module Readapt
   class Frame
-    attr_reader :thread_id
-
     attr_reader :location
 
-    def initialize location, binding_id, thread_id
+    def initialize location, binding_id
       @location = location
       @binding = ObjectSpace._id2ref(binding_id)
-      @thread_id = thread_id
     end
 
     def local_id
@@ -17,6 +14,7 @@ module Readapt
     end
 
     def locals
+      return [] if @binding.nil?
       result = []
       @binding.local_variables.each do |sym|
         var = @binding.local_variable_get(sym)
@@ -29,6 +27,7 @@ module Readapt
     end
 
     def variables
+      return [] if @binding.nil?
       result = []
       @binding.local_variables.each do |sym|
         var = @binding.local_variable_get(sym)
@@ -63,5 +62,7 @@ module Readapt
     def evaluate code
       @binding.eval code
     end
+
+    NULL_FRAME = Frame.new(nil, nil.object_id)
   end
 end

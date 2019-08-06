@@ -4,11 +4,9 @@ module Readapt
   module Message
     class Continue < Base
       def run
-        # @todo Is it possible to continue a single thread?
-        set_body({
-          allThreadsContinued: true
-        })
-        inspector.control = :continue
+        thread = debugger.thread(arguments['threadId'])
+        thread.control = :continue
+        set_body({})
       end
     end
   end

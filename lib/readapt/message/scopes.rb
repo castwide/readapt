@@ -5,7 +5,7 @@ module Readapt
     class Scopes < Base
       def run
         # frame = inspector.debugger.frames.find { |frm| frm.object_id == arguments['frameId'] }
-        frame = inspector.frame
+        frame = debugger.frame(arguments['frameId'])
         set_body({
           scopes: [
             {

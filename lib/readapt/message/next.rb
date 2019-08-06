@@ -4,7 +4,8 @@ module Readapt
   module Message
     class Next < Base
       def run
-        inspector.control = :next
+        thread = debugger.thread(arguments['threadId'])
+        thread.control = :next
       end
     end
   end
