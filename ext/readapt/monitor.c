@@ -13,7 +13,6 @@ static VALUE tpThreadEnd;
 static VALUE debugProc;
 static VALUE breakpoints;
 static int knownBreakpoints;
-static int monitorPaused;
 
 static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
 {
@@ -67,10 +66,6 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 {
 	VALUE bind, bid, snapshot, result;
 
-	// TODO: Preparing for multi-thread control
-	// thread_pause();
-	// ptr->control = rb_intern("pause");
-	monitorPaused = 1;
 	bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
 	bid = rb_funcall(bind, rb_intern("object_id"), 0);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 7,
@@ -90,7 +85,6 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	ptr->control = SYM2ID(result);
 	ptr->prev_file = file;
 	ptr->prev_line = line;
-	monitorPaused = 0;
 }
 
 static void
@@ -106,7 +100,6 @@ process_line_event(VALUE tracepoint, void *data)
 	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
-		//threadPaused = (monitorPaused || ptr->control == rb_intern("pause"));
 		if (ptr->depth > 0)
 		{
 			threadPaused = (ptr->control == rb_intern("pause"));
@@ -296,7 +289,6 @@ void initialize_monitor(VALUE m_Readapt)
 	debugProc = Qnil;
 	breakpoints = rb_funcall(m_Monitor, rb_intern("breakpoints"), 0);
 	knownBreakpoints = 0;
-	monitorPaused = 0;
 
 	// Avoid garbage collection
 	rb_global_variable(&tpLine);
