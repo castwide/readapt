@@ -60,9 +60,9 @@ module Readapt
     rescue SystemExit
       # Ignore
     ensure
-      set_original_args
       Monitor.stop
       @running = false
+      set_original_args
       changed
       notify_observers 'terminated', nil
     end

@@ -69,13 +69,14 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	ptr->control = rb_intern("pause");
 	bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
 	bid = rb_funcall(bind, rb_intern("object_id"), 0);
-	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 6,
+	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 7,
 		LONG2NUM(ptr->id),
 		bid,
 		file,
 		INT2NUM(line),
 		Qnil,
-		ID2SYM(event)
+		ID2SYM(event),
+		INT2NUM(ptr->depth)
 	);
 	rb_io_flush(rb_stdout);
 	rb_io_flush(rb_stderr);
@@ -97,25 +98,28 @@ process_line_event(VALUE tracepoint, void *data)
 	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
-		if (knownBreakpoints || ptr->control != rb_intern("continue"))
+		if (ptr->depth > 0)
 		{
-			tp = rb_tracearg_from_tracepoint(tracepoint);
-			tp_file = rb_tracearg_path(tp);
-			tp_line = NUM2INT(rb_tracearg_lineno(tp));
-			if (!match_line(tp_file, tp_line, ptr))
+			if (knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
-				if (match_breakpoint(tp_file, tp_line) || match_step(ptr))
+				tp = rb_tracearg_from_tracepoint(tracepoint);
+				tp_file = rb_tracearg_path(tp);
+				tp_line = NUM2INT(rb_tracearg_lineno(tp));
+				if (!match_line(tp_file, tp_line, ptr))
 				{
-					monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
+					if (match_breakpoint(tp_file, tp_line) || match_step(ptr))
+					{
+						monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
+					}
+					ptr->prev_file = tp_file;
+					ptr->prev_line = tp_line;
 				}
-				ptr->prev_file = tp_file;
-				ptr->prev_line = tp_line;
 			}
-		}
-		else
-		{
-			ptr->prev_file = Qnil;
-			ptr->prev_line = Qnil;
+			else
+			{
+				ptr->prev_file = Qnil;
+				ptr->prev_line = Qnil;
+			}
 		}
 	}
 }
