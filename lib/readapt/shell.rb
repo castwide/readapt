@@ -23,7 +23,7 @@ module Readapt
           Backport.stop
         end
         debugger = Readapt::Debugger.new
-        Thread.new do
+        ::Thread.new do
           Readapt::Adapter.host debugger
           Backport.prepare_tcp_server host: options[:host], port: options[:port], adapter: Readapt::Adapter
         end
