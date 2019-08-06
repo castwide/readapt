@@ -10,14 +10,12 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'A Ruby debugger for the Debug Adapter Protocol'
   spec.description   = 'Readapt is a Ruby debugger that natively supports the Debug Adapter Protocol. Features include next/step in/step out, local and global variable data, and individual thread control.'
-  #spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://castwide.com"
   spec.license       = "MIT"
 
-  #spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
-
-  #spec.metadata["homepage_uri"] = spec.homepage
-  #spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-  #spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/castwide/readapt"
+  spec.metadata["changelog_uri"] = "https://github.com/castwide/readapt/blob/master/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
