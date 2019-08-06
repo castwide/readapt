@@ -181,9 +181,16 @@ process_thread_begin_event(VALUE self, void *data)
 }
 
 static void
-process_thread_end_event(VALUE self, void *data)
+process_thread_end_event(VALUE tracepoint, void *data)
 {
-	thread_delete_reference(rb_thread_current());
+	VALUE thr, ref;
+	thread_reference_t *ptr;
+
+	thr = rb_thread_current();
+	ref = thread_reference(thr);
+	ptr = thread_reference_pointer(ref);
+	monitor_debug(ptr->prev_file, ptr->prev_line, tracepoint, ptr, rb_intern("thread_end"));
+	thread_delete_reference(thr);
 }
 
 static VALUE

@@ -103,21 +103,29 @@ module Readapt
     # return [void]
     def debug snapshot
       changed
-      notify_observers('stopped', {
-        reason: snapshot.event,
-        threadId: ::Thread.current.object_id
-      })
-      thread = (@threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id))
-      thread.control = :pause
-      @stopped.add thread
-      frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
-      thread.frames.push frame
-      @frames[frame.local_id] = frame
-      sleep 0.01 until thread.control != :pause
-      @frames.delete frame.local_id
-      thread.frames.delete frame
-      @stopped.delete thread
-      snapshot.control = thread.control
+      if (snapshot.event == :thread_end)
+        notify_observers('thread', {
+          reason: 'exited',
+          threadId: snapshot.thread_id
+        })
+        @stopped.delete thread(snapshot.thread_id)
+      else
+        notify_observers('stopped', {
+          reason: snapshot.event,
+          threadId: ::Thread.current.object_id
+        })
+        thread = (@threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id))
+        thread.control = :pause
+        @stopped.add thread
+        frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
+        thread.frames.push frame
+        @frames[frame.local_id] = frame
+        sleep 0.01 until thread.control != :pause || @stopped.empty?
+        @frames.delete frame.local_id
+        thread.frames.delete frame
+        @stopped.delete thread
+        snapshot.control = thread.control
+      end
     end
 
     def set_program_args

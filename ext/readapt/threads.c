@@ -38,6 +38,7 @@ VALUE thread_reference_new(VALUE thr)
 	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
 	data->depth = 0;
 	data->cursor = 0;
+	data->stopped = 0;
 	data->control = rb_intern("continue");
 	return obj;
 }
