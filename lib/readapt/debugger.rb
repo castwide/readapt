@@ -21,21 +21,13 @@ module Readapt
       @attached = false
       @request = nil
       @config = {}
-      @original_args = ARGV.clone
+      @original_argv = ARGV.clone
     end
 
-    def attach arguments
+    def config arguments, request
       @file = Readapt.normalize_path(find(arguments['program']))
       @config = arguments
-      @request = :attach
-    rescue LoadError => e
-      STDERR.puts e.message
-    end
-
-    def launch arguments
-      @file = Readapt.normalize_path(find(arguments['program']))
-      @config = arguments
-      @request = :launch
+      @request = request
     rescue LoadError => e
       STDERR.puts e.message
     end
@@ -50,23 +42,25 @@ module Readapt
 
     def start
       Thread.new do
-        set_program_argv
-        run { load File.absolute_path(file) }
-        set_original_argv
+        run { load @file }
       end
     end
 
     def run
-      raise RuntimeError, 'Debugger is already running' if @running
+      # raise RuntimeError, 'Debugger is already running' if @running
+      set_program_args
       @running = true
       Monitor.start do |snapshot|
         debug snapshot
       end
       yield if block_given?
-    rescue Exception => e
+    rescue StandardError => e
       STDERR.puts e.message
       STDERR.puts e.backtrace.join("\n")
+    rescue SystemExit
+      # Ignore
     ensure
+      set_original_args
       Monitor.stop
       @running = false
       changed
@@ -82,9 +76,8 @@ module Readapt
     end
 
     def disconnect
-      Monitor.stop
+      shutdown if launched?
       @request = nil
-      Backport.stop if inspector.debugger.launched?
     end
 
     def self.run &block
@@ -110,14 +103,19 @@ module Readapt
       # @frames.delete frame
     end
 
-    def set_program_argv
+    def set_program_args
       ARGV.clear
-      ARGV.concat(@config['programArgs'] || [])
+      ARGV.replace(@config['programArgs'] || [])
     end
 
-    def set_original_argv
+    def set_original_args
       ARGV.clear
-      ARGV.concat @original_args
+      ARGV.replace @original_argv
+    end
+
+    def shutdown
+      Backport.stop
+      exit
     end
   end
 end

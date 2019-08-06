@@ -6,10 +6,6 @@ module Readapt
   module Adapter
     # @!parse include Backport::Adapter
 
-    # @todo Support multiple clients?
-    @@stdout = nil
-    @@stderr = nil
-    @@client = nil
     @@inspector = nil
     @@debugger = nil
 
@@ -25,29 +21,15 @@ module Readapt
       !!@@inspector
     end
 
-    def self.connected?
-      !!@@client
-    end
-
     def format result
       write_line result.to_protocol.to_json
     end
 
     def opening
-      if !@@stdout
-        @@stdout = self
-        remote[:client] = :stdout
-      elsif !@@stderr
-        @@stderr = self
-        remote[:client] = :stderr
-      else
-        @@client = self
-        remote[:client] = :user
-        @@debugger.add_observer self
-        @data_reader = DataReader.new
-        @data_reader.set_message_handler do |message|
-          process message
-        end
+      @@debugger.add_observer self
+      @data_reader = DataReader.new
+      @data_reader.set_message_handler do |message|
+        process message
       end
     end
 
@@ -56,20 +38,16 @@ module Readapt
     end
 
     def receiving data
-      if remote[:client] == :user
-        @data_reader.receive data
-      else
-        @@debugger.output data, remote[:client]
-      end
+      @data_reader.receive data
     end
 
     def update event, data
-      return unless @@client == self
-      json = {
+      obj = {
         type: 'event',
-        event: event,
-        body: data
-      }.to_json
+        event: event
+      }
+      obj[:body] = data unless data.nil?
+      json = obj.to_json
       envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
       write envelope
     end

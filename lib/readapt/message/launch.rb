@@ -4,7 +4,7 @@ module Readapt
   module Message
     class Launch < Base
       def run
-        inspector.debugger.launch arguments
+        inspector.debugger.config arguments, :launch
       end
     end
   end

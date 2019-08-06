@@ -3,7 +3,10 @@
 module Readapt
   module Message
     class Base
+      # @return [Hash]
       attr_reader :arguments
+
+      # @return [Inspector]
       attr_reader :inspector
 
       def initialize arguments, inspector
@@ -27,4 +30,3 @@ module Readapt
     end
   end
 end
-

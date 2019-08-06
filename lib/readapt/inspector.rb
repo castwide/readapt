@@ -2,6 +2,7 @@
 
 module Readapt
   class Inspector
+    # @return [Debugger]
     attr_reader :debugger
     attr_reader :frame
     attr_accessor :control
