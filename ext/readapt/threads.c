@@ -60,6 +60,11 @@ VALUE thread_reference(VALUE thr)
 	return rb_hash_aref(threads, rb_obj_id(thr));
 }
 
+VALUE thread_reference_id(VALUE id)
+{
+	return rb_hash_aref(threads, id);
+}
+
 VALUE thread_add_reference(VALUE thr)
 {
 	VALUE ref;

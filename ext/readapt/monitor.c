@@ -234,6 +234,20 @@ monitor_disable_s(VALUE self)
 }
 
 static VALUE
+monitor_pause_s(VALUE self, VALUE id)
+{
+	VALUE ref;
+	thread_reference_t *ptr;
+
+	ref = thread_reference_id(id);
+	if (!RB_NIL_P(ref))
+	{
+		ptr = thread_reference_pointer(ptr);
+		ptr->control = rb_intern("pause");
+	}
+}
+
+static VALUE
 monitor_know_breakpoints_s(VALUE self)
 {
 	knownBreakpoints = (rb_funcall(breakpoints, rb_intern("empty?"), 0) == Qfalse) ? 1 : 0;
@@ -250,6 +264,7 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 0);
 	rb_define_singleton_method(m_Monitor, "stop", monitor_disable_s, 0);
 	rb_define_singleton_method(m_Monitor, "know_breakpoints", monitor_know_breakpoints_s, 0);
+	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 0);
 
 	tpLine = rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, process_line_event, NULL);
 	tpCall = rb_tracepoint_new(Qnil, RUBY_EVENT_CALL | RUBY_EVENT_B_CALL | RUBY_EVENT_CLASS, process_call_event, NULL);

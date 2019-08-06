@@ -16,6 +16,7 @@ require 'readapt/message/step_in'
 require 'readapt/message/step_out'
 require 'readapt/message/disconnect'
 require 'readapt/message/attach'
+require 'readapt/message/pause'
 
 module Readapt
   module Message
@@ -51,5 +52,6 @@ module Readapt
     register 'stepIn', Message::StepIn
     register 'stepOut', Message::StepOut
     register 'disconnect', Message::Disconnect
+    register 'pause', Message::Pause
   end
 end
