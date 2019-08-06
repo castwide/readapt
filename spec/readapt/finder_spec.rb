@@ -1,13 +1,13 @@
-require "tmpdir"
+require 'tmpdir'
 
 RSpec.describe Readapt::Finder do
-  it "finds local files" do
+  it 'finds local files' do
     program = File.absolute_path(File.join('spec', 'fixtures', 'file.rb'))
     found = Readapt::Finder.find(program)
     expect(found).to eq(program)
   end
 
-  it "finds Ruby programs" do
+  it 'finds Ruby programs' do
     program = 'rspec'
     found = Readapt::Finder.find(program)
     expect(found).to end_with('rspec')

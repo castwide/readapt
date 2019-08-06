@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module Readapt
+  # Data retrieved from variable reference in the debugger.
+  #
   class Variable
     # @return [String]
     attr_reader :name
@@ -35,7 +37,7 @@ module Readapt
 
     private
 
-    UNSTRUCTURED_TYPES = [NilClass, String, TrueClass, FalseClass, Numeric]
+    UNSTRUCTURED_TYPES = [NilClass, String, TrueClass, FalseClass, Numeric].freeze
     private_constant :UNSTRUCTURED_TYPES
 
     # @return [Object]
@@ -52,7 +54,9 @@ module Readapt
     end
 
     def no_references?
-      (object.instance_variables.empty? && object.class.class_variables.empty?) && (!enumerable? || object.empty?)
+      (object.instance_variables.empty? &&
+        object.class.class_variables.empty?) &&
+        (!enumerable? || object.empty?)
     end
 
     def enumerable?
