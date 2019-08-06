@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Fred Snyder"]
   spec.email         = ["fsnyder@castwide.com"]
 
-  spec.summary       = 'debugger'
-  spec.description   = 'debugger'
+  spec.summary       = 'A Ruby debugger for the Debug Adapter Protocol'
+  spec.description   = 'Readapt is a Ruby debugger that natively supports the Debug Adapter Protocol. Features include next/step in/step out, local and global variable data, and individual thread control.'
   #spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
 
