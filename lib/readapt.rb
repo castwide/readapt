@@ -4,6 +4,7 @@ require "readapt/version"
 require 'readapt/location'
 require 'readapt/breakpoint'
 require 'readapt/breakpoints'
+require 'readapt/thread'
 require 'readapt/frame'
 require 'readapt/monitor'
 require 'readapt/snapshot'
