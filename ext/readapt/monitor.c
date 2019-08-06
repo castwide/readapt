@@ -188,9 +188,12 @@ process_thread_end_event(VALUE tracepoint, void *data)
 
 	thr = rb_thread_current();
 	ref = thread_reference(thr);
-	ptr = thread_reference_pointer(ref);
-	monitor_debug(ptr->prev_file, ptr->prev_line, tracepoint, ptr, rb_intern("thread_end"));
-	thread_delete_reference(thr);
+	if (!RB_NIL_P(ref))
+	{
+		ptr = thread_reference_pointer(ref);
+		monitor_debug(ptr->prev_file, ptr->prev_line, tracepoint, ptr, rb_intern("thread_end"));
+		thread_delete_reference(thr);
+	}
 }
 
 static VALUE
