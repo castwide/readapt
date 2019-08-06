@@ -68,6 +68,12 @@ VALUE thread_add_reference(VALUE thr)
 	return ref;
 }
 
+VALUE thread_delete_reference(VALUE thr)
+{
+	rb_hash_delete(threads, thr);
+	return Qnil;
+}
+
 void thread_reset()
 {
 	rb_funcall(threads, rb_intern("clear"), 0);

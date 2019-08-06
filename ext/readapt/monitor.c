@@ -131,7 +131,7 @@ process_call_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 
 	ref = thread_current_reference();
-	if (ref != Qnil)
+	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
 		ptr->depth++;
@@ -145,7 +145,7 @@ process_return_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 	
 	ref = thread_current_reference();
-	if (ref != Qnil)
+	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
 		ptr->depth--;
@@ -155,28 +155,32 @@ process_return_event(VALUE tracepoint, void *data)
 static void
 process_thread_begin_event(VALUE self, void *data)
 {
-	/*VALUE list, last, ref;
+	VALUE list, here, prev, ref;
 
-	VALUE thread = rb_thread_current();
-	VALUE id = rb_funcall(thread, rb_intern("object_id"), 0);
-	if (!rb_funcall(threads, rb_intern("key?"), 1, id)) {
-		return;
-	}
+	rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Adding a thread?"));
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
-	last = rb_funcall(list, rb_intern("last"), 0);
-	if (last == Qnil) {
-		return;
+	here = rb_ary_pop(list);
+	if (!RB_NIL_P(here))
+	{
+		prev = rb_ary_pop(list);
+		{
+			if (!RB_NIL_P(prev))
+			{
+				ref = thread_reference(prev);
+				if (!RB_NIL_P(ref))
+				{
+					rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Pow!!!!!!!!"));
+					thread_add_reference(here);
+				}
+			}
+		}
 	}
-	ref = rdap_thread_new();
-	rb_hash_aset(threads, id, ref);*/
 }
 
 static void
 process_thread_end_event(VALUE self, void *data)
 {
-	/*VALUE thread = rb_thread_current();
-	VALUE id = rb_funcall(thread, rb_intern("object_id"), 0);
-	rb_hash_delete(threads, id);*/
+	thread_delete_reference(rb_thread_current());
 }
 
 static VALUE
@@ -196,8 +200,8 @@ monitor_enable_s(VALUE self)
 	rb_tracepoint_enable(tpLine);
 	rb_tracepoint_enable(tpCall);
 	rb_tracepoint_enable(tpReturn);
-	/*rb_tracepoint_enable(tpThreadBegin);
-	rb_tracepoint_enable(tpThreadEnd);*/
+	rb_tracepoint_enable(tpThreadBegin);
+	rb_tracepoint_enable(tpThreadEnd);
 	return previous;
 }
 
@@ -210,8 +214,8 @@ monitor_disable_s(VALUE self)
 	rb_tracepoint_disable(tpLine);
 	rb_tracepoint_disable(tpCall);
 	rb_tracepoint_disable(tpReturn);
-	/*rb_tracepoint_disable(tpThreadBegin);
-	rb_tracepoint_disable(tpThreadEnd);*/
+	rb_tracepoint_disable(tpThreadBegin);
+	rb_tracepoint_disable(tpThreadEnd);
 	
 	return previous;
 }
@@ -247,4 +251,6 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_global_variable(&tpLine);
 	rb_global_variable(&tpCall);
 	rb_global_variable(&tpReturn);
+	rb_global_variable(&tpThreadBegin);
+	rb_global_variable(&tpThreadEnd);
 }
