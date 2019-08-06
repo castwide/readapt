@@ -74,6 +74,11 @@ VALUE thread_delete_reference(VALUE thr)
 	return Qnil;
 }
 
+void thread_pause()
+{
+
+}
+
 void thread_reset()
 {
 	rb_funcall(threads, rb_intern("clear"), 0);

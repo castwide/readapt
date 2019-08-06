@@ -66,6 +66,8 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 {
 	VALUE bind, bid, snapshot, result;
 
+	// TODO: Preparing for multi-thread control
+	// thread_pause();
 	ptr->control = rb_intern("pause");
 	bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
 	bid = rb_funcall(bind, rb_intern("object_id"), 0);

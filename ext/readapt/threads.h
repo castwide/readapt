@@ -13,4 +13,5 @@ VALUE thread_reference(VALUE);
 VALUE thread_add_reference(VALUE);
 VALUE thread_delete_reference(VALUE);
 thread_reference_t *thread_reference_pointer(VALUE);
+void thread_pause();
 void thread_reset();
