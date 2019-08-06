@@ -84,6 +84,8 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	result = rb_funcall(snapshot, rb_intern("control"), 0);
 	ptr->cursor = ptr->depth;
 	ptr->control = SYM2ID(result);
+	ptr->prev_file = file;
+	ptr->prev_line = line;
 }
 
 static void
@@ -111,8 +113,6 @@ process_line_event(VALUE tracepoint, void *data)
 					{
 						monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
 					}
-					ptr->prev_file = tp_file;
-					ptr->prev_line = tp_line;
 				}
 			}
 			else
