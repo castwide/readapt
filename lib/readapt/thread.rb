@@ -17,8 +17,8 @@ module Readapt
 
     def initialize id
       @id = id
-      @name = "Thread #{@@next_id}"
       @@next_id += 1
+      @name = "Thread #{@@next_id}"
     end
 
     def frames
