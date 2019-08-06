@@ -115,6 +115,7 @@ module Readapt
       sleep 0.01 until thread.control != :pause
       @frames.delete frame.local_id
       thread.frames.delete frame.local_id
+      @stopped.delete thread
       snapshot.control = thread.control
     end
 
