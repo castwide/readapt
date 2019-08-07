@@ -63,6 +63,9 @@ module Readapt
       set_program_args
       @running = true
       # @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
+      notify_observers('process', {
+        name: @file
+      })
       Monitor.start do |snapshot|
         debug snapshot
       end
