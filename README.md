@@ -23,3 +23,7 @@ Or install it yourself as:
 ## Usage
 
 Run `readapt serve` to start the server. The default client connection is host 127.0.0.1, port 1234.
+
+## Integrations
+
+Readapt is available for Visual Studio Code in the [Ruby Debug extension](https://marketplace.visualstudio.com/items?itemName=castwide.ruby-debug).
