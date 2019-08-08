@@ -104,7 +104,6 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      puts snapshot.inspect
       if (snapshot.event == :thread_begin)
         thr = Thread.new(snapshot.thread_id)
         thr.control = :continue
@@ -112,15 +111,15 @@ module Readapt
         send_event('thread', {
           reason: 'started',
           threadId: snapshot.thread_id
-        })
-        send_event('stopped', {
-          reason: 'pause',
-          threadId: snapshot.thread_id
         }, true)
-        send_event('continued', {
-          threadId: snapshot.thread_id,
-          allThreadsContinued: false
-        }, true)
+        # send_event('stopped', {
+        #   reason: 'pause',
+        #   threadId: snapshot.thread_id
+        # }, true)
+        # send_event('continued', {
+        #   threadId: snapshot.thread_id,
+        #   allThreadsContinued: false
+        # }, true)
         snapshot.control = :continue
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
@@ -138,6 +137,8 @@ module Readapt
         else
           snapshot.control = :ready
         end
+      elsif snapshot.event == :entry
+        snapshot.control = :continue
       else
         changed
         thread = self.thread(snapshot.thread_id)
@@ -149,18 +150,18 @@ module Readapt
         send_event('stopped', {
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
-        }, true)
-        if snapshot.event == :entry
-          # Make sure information about the stopped thread was processed before
-          # continuing
-          send_event('continued', {
-            threadId: ::Thread.current.object_id,
-            allThreadsContinued: false
-          }, true)
-          thread.control = :continue
-        else
+        })
+        # if snapshot.event == :entry
+        #   # Make sure information about the stopped thread was processed before
+        #   # continuing
+        #   send_event('continued', {
+        #     threadId: ::Thread.current.object_id,
+        #     allThreadsContinued: false
+        #   }, true)
+        #   thread.control = :continue
+        # else
           sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
-        end
+        # end
         @frames.delete frame.local_id
         thread.frames.delete frame
         @stopped.delete thread
