@@ -140,20 +140,19 @@ module Readapt
         end
       else
         changed
-        send_event('stopped', {
-          reason: snapshot.event,
-          threadId: ::Thread.current.object_id
-        })
         thread = self.thread(snapshot.thread_id)
         thread.control = :pause
         @stopped.add thread
         frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
         thread.frames.push frame
         @frames[frame.local_id] = frame
+        send_event('stopped', {
+          reason: snapshot.event,
+          threadId: ::Thread.current.object_id
+        }, true)
         if snapshot.event == :entry
           # Make sure information about the stopped thread was processed before
           # continuing
-          sleep 0.01
           send_event('continued', {
             threadId: ::Thread.current.object_id,
             allThreadsContinued: false
