@@ -63,8 +63,7 @@ module Readapt
       set_program_args
       @running = true
       # @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
-      changed
-      notify_observers('process', {
+      send_event('process', {
         name: @file
       })
       Monitor.start do |snapshot|
@@ -81,12 +80,11 @@ module Readapt
       @running = false
       set_original_args
       changed
-      notify_observers 'terminated', nil
+      send_event 'terminated', nil
     end
 
     def output data, category = :console
-      changed
-      notify_observers('output', {
+      send_event('output', {
         output: data,
         category: category
       })
@@ -106,38 +104,33 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
+      puts snapshot.inspect
       if (snapshot.event == :thread_begin)
         thr = Thread.new(snapshot.thread_id)
         thr.control = :continue
         @threads[snapshot.thread_id] = thr
-        changed
-        notify_observers('thread', {
+        send_event('thread', {
           reason: 'started',
           threadId: snapshot.thread_id
         })
-        changed
-        notify_observers('stopped', {
+        send_event('stopped', {
           reason: 'pause',
           threadId: snapshot.thread_id
-        })
-        changed
-        notify_observers('continued', {
+        }, true)
+        send_event('continued', {
           threadId: snapshot.thread_id,
           allThreadsContinued: false
-        })
-        sleep 0.01
+        }, true)
         snapshot.control = :continue
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
         thr.control = :continue
-        changed
-        notify_observers('thread', {
+        @stopped.delete thread(snapshot.thread_id)
+        @threads.delete snapshot.thread_id
+        send_event('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id
         })
-        @stopped.delete thread(snapshot.thread_id)
-        @threads.delete snapshot.thread_id
-        sleep 0.01
         snapshot.control = :continue
       elsif snapshot.event == :initialize
         if snapshot.file != @file
@@ -147,7 +140,7 @@ module Readapt
         end
       else
         changed
-        notify_observers('stopped', {
+        send_event('stopped', {
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
@@ -158,12 +151,13 @@ module Readapt
         thread.frames.push frame
         @frames[frame.local_id] = frame
         if snapshot.event == :entry
+          # Make sure information about the stopped thread was processed before
+          # continuing
           sleep 0.01
-          changed
-          notify_observers('continued', {
+          send_event('continued', {
             threadId: ::Thread.current.object_id,
             allThreadsContinued: false
-          })
+          }, true)
           thread.control = :continue
         else
           sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
@@ -188,6 +182,12 @@ module Readapt
     def shutdown
       Backport.stop
       exit
+    end
+
+    def send_event event, data, wait = false
+      changed
+      notify_observers event, data
+      sleep 0.01 if wait
     end
   end
 end
