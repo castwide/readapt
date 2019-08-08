@@ -82,9 +82,9 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	rb_io_flush(rb_stderr);
 	rb_funcall(debugProc, rb_intern("call"), 1, snapshot);
 	result = SYM2ID(rb_funcall(snapshot, rb_intern("control"), 0));
-	ptr->cursor = ptr->depth;
 	if (result != rb_intern("wait"))
 	{
+		ptr->cursor = ptr->depth;
 		ptr->control = result;
 	}
 	ptr->prev_file = file;
@@ -138,6 +138,7 @@ process_line_event(VALUE tracepoint, void *data)
 					if (dapEvent == rb_intern("entry") && result != rb_intern("wait"))
 					{
 						firstLineEvent = 1;
+						process_line_event(tracepoint, data);
 					}
 				}
 			}

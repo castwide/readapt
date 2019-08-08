@@ -132,18 +132,25 @@ module Readapt
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
-        #thread = @threads[snapshot.thread_id]
-        thread = self.thread(snapshot.thread_id)
-        thread.control = :pause
-        @stopped.add thread
-        frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
-        thread.frames.push frame
-        @frames[frame.local_id] = frame
-        sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
-        @frames.delete frame.local_id
-        thread.frames.delete frame
-        @stopped.delete thread
-        snapshot.control = thread.control
+        if snapshot.event == :entry
+          notify_observers('continued', {
+            threadId: ::Thread.current.object_id
+          })
+          snapshot.control = :continue
+        else
+          #thread = @threads[snapshot.thread_id]
+          thread = self.thread(snapshot.thread_id)
+          thread.control = :pause
+          @stopped.add thread
+          frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
+          thread.frames.push frame
+          @frames[frame.local_id] = frame
+          sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
+          @frames.delete frame.local_id
+          thread.frames.delete frame
+          @stopped.delete thread
+          snapshot.control = thread.control
+        end
       end
     end
 
