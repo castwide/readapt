@@ -46,7 +46,7 @@ module Readapt
 
     private
 
-    # @param request [String]
+    # @param data [Hash]
     # @return [void]
     def process data
       # @todo Better solution than nil frames

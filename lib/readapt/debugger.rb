@@ -63,7 +63,6 @@ module Readapt
       # raise RuntimeError, 'Debugger is already running' if @running
       set_program_args
       @running = true
-      # @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
       send_event('process', {
         name: @file
       })
@@ -113,14 +112,6 @@ module Readapt
           reason: 'started',
           threadId: snapshot.thread_id
         }, true)
-        # send_event('stopped', {
-        #   reason: 'pause',
-        #   threadId: snapshot.thread_id
-        # }, true)
-        # send_event('continued', {
-        #   threadId: snapshot.thread_id,
-        #   allThreadsContinued: false
-        # }, true)
         snapshot.control = :continue
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
@@ -131,13 +122,6 @@ module Readapt
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
-      # elsif snapshot.event == :thread_run
-      #   thr = thread(snapshot.thread_id)
-      #   send_event('thread', {
-      #     reason: 'running',
-      #     threadId: snapshot.thread_id
-      #   })
-      #   snapshot.control = :continue
       elsif snapshot.event == :initialize
         if snapshot.file != @file
           snapshot.control = :wait
@@ -157,17 +141,7 @@ module Readapt
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
-        # if snapshot.event == :entry
-        #   # Make sure information about the stopped thread was processed before
-        #   # continuing
-        #   send_event('continued', {
-        #     threadId: ::Thread.current.object_id,
-        #     allThreadsContinued: false
-        #   }, true)
-        #   thread.control = :continue
-        # else
-          sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
-        # end
+        sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
         @frames.delete frame.local_id
         thread.frames.delete frame
         snapshot.control = thread.control
