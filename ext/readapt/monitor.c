@@ -13,6 +13,7 @@ static VALUE tpThreadEnd;
 static VALUE debugProc;
 static VALUE breakpoints;
 static int knownBreakpoints;
+static int firstLineEvent;
 
 static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
 {
@@ -61,7 +62,7 @@ static int match_step(thread_reference_t *ptr)
 	return 0;
 }
 
-static void
+static ID
 monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
 	VALUE bind, bid, snapshot, result;
@@ -80,11 +81,15 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	rb_io_flush(rb_stdout);
 	rb_io_flush(rb_stderr);
 	rb_funcall(debugProc, rb_intern("call"), 1, snapshot);
-	result = rb_funcall(snapshot, rb_intern("control"), 0);
+	result = SYM2ID(rb_funcall(snapshot, rb_intern("control"), 0));
 	ptr->cursor = ptr->depth;
-	ptr->control = SYM2ID(result);
+	if (result != rb_intern("wait"))
+	{
+		ptr->control = result;
+	}
 	ptr->prev_file = file;
 	ptr->prev_line = line;
+	return result;
 }
 
 static void
@@ -95,24 +100,44 @@ process_line_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
 	int threadPaused;
+	ID dapEvent, result;
 
 	ref = thread_current_reference();
 	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
-		if (ptr->depth > 0)
+		if (ptr->depth > 0 || !firstLineEvent)
 		{
 			threadPaused = (ptr->control == rb_intern("pause"));
-			if (threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
+			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
 				tp_file = rb_tracearg_path(tp);
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
-				if (threadPaused || !match_line(tp_file, tp_line, ptr))
+
+				dapEvent = NULL;
+				if (threadPaused)
 				{
-					if (threadPaused || match_breakpoint(tp_file, tp_line) || match_step(ptr))
+					dapEvent = rb_intern("pause");
+				}
+				else if (match_step(ptr))
+				{
+					dapEvent = rb_intern("step");
+				}
+				else if (match_breakpoint(tp_file, tp_line))
+				{
+					dapEvent = rb_intern("breakpoint");
+				}
+				else if (!firstLineEvent)
+				{
+					dapEvent = rb_intern("entry");
+				}
+				if (dapEvent)
+				{
+					result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
+					if (dapEvent == rb_intern("entry") && result != rb_intern("wait"))
 					{
-						monitor_debug(tp_file, tp_line, tracepoint, ptr, rb_intern("breakpoint"));
+						firstLineEvent = 1;
 					}
 				}
 			}
@@ -213,7 +238,9 @@ monitor_enable_s(VALUE self)
 	} else {
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
-	
+
+	firstLineEvent = 0;
+
 	ref = thread_add_reference(rb_thread_current());
 	ptr = thread_reference_pointer(ref);
 	monitor_debug(
@@ -289,6 +316,7 @@ void initialize_monitor(VALUE m_Readapt)
 	debugProc = Qnil;
 	breakpoints = rb_funcall(m_Monitor, rb_intern("breakpoints"), 0);
 	knownBreakpoints = 0;
+	firstLineEvent = 0;
 
 	// Avoid garbage collection
 	rb_global_variable(&tpLine);

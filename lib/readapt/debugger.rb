@@ -125,6 +125,8 @@ module Readapt
         @stopped.delete thread(snapshot.thread_id)
         @threads.delete snapshot.thread_id
         snapshot.control = :continue
+      elsif snapshot.event == :entry && snapshot.file != @file
+        snapshot.control = :wait
       else
         notify_observers('stopped', {
           reason: snapshot.event,
