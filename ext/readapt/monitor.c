@@ -13,7 +13,7 @@ static VALUE tpThreadEnd;
 static VALUE debugProc;
 static VALUE breakpoints;
 static int knownBreakpoints;
-static int firstLineEvent;
+static int firstLineEvent = 0;
 
 static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
 {
@@ -82,7 +82,7 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 	rb_io_flush(rb_stderr);
 	rb_funcall(debugProc, rb_intern("call"), 1, snapshot);
 	result = SYM2ID(rb_funcall(snapshot, rb_intern("control"), 0));
-	if (result != rb_intern("wait"))
+	if (event != rb_intern("entry"))
 	{
 		ptr->cursor = ptr->depth;
 		ptr->control = result;
@@ -106,7 +106,7 @@ process_line_event(VALUE tracepoint, void *data)
 	if (!RB_NIL_P(ref))
 	{
 		ptr = thread_reference_pointer(ref);
-		if (ptr->depth > 0 || !firstLineEvent)
+		if (ptr->depth > 0 /*|| !firstLineEvent*/)
 		{
 			threadPaused = (ptr->control == rb_intern("pause"));
 			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
@@ -317,7 +317,6 @@ void initialize_monitor(VALUE m_Readapt)
 	debugProc = Qnil;
 	breakpoints = rb_funcall(m_Monitor, rb_intern("breakpoints"), 0);
 	knownBreakpoints = 0;
-	firstLineEvent = 0;
 
 	// Avoid garbage collection
 	rb_global_variable(&tpLine);
