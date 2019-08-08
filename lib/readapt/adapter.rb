@@ -33,7 +33,6 @@ module Readapt
     end
 
     def update event, data
-      puts "#{event}: #{data}" unless event == 'output'
       obj = {
         type: 'event',
         event: event
