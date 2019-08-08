@@ -63,6 +63,7 @@ module Readapt
       set_program_args
       @running = true
       # @threads[::Thread.current.object_id] = Thread.new(::Thread.current.object_id)
+      changed
       notify_observers('process', {
         name: @file
       })
@@ -110,6 +111,7 @@ module Readapt
         thr = Thread.new(snapshot.thread_id)
         thr.control = :continue
         @threads[snapshot.thread_id] = thr
+        changed
         notify_observers('thread', {
           reason: 'started',
           threadId: snapshot.thread_id
@@ -118,6 +120,7 @@ module Readapt
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
         thr.control = :continue
+        changed
         notify_observers('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id
@@ -125,32 +128,39 @@ module Readapt
         @stopped.delete thread(snapshot.thread_id)
         @threads.delete snapshot.thread_id
         snapshot.control = :continue
-      elsif snapshot.event == :entry && snapshot.file != @file
-        snapshot.control = :wait
+      elsif snapshot.event == :initialize
+        if snapshot.file != @file
+          snapshot.control = :wait
+        else
+          snapshot.control = :ready
+        end
       else
+        changed
         notify_observers('stopped', {
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
+        thread = self.thread(snapshot.thread_id)
+        thread.control = :pause
+        @stopped.add thread
+        frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
+        thread.frames.push frame
+        @frames[frame.local_id] = frame
         if snapshot.event == :entry
+          sleep 0.01
+          changed
           notify_observers('continued', {
-            threadId: ::Thread.current.object_id
+            threadId: ::Thread.current.object_id,
+            allThreadsContinued: false
           })
-          snapshot.control = :continue
+          thread.control = :continue
         else
-          #thread = @threads[snapshot.thread_id]
-          thread = self.thread(snapshot.thread_id)
-          thread.control = :pause
-          @stopped.add thread
-          frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
-          thread.frames.push frame
-          @frames[frame.local_id] = frame
           sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
-          @frames.delete frame.local_id
-          thread.frames.delete frame
-          @stopped.delete thread
-          snapshot.control = thread.control
         end
+        @frames.delete frame.local_id
+        thread.frames.delete frame
+        @stopped.delete thread
+        snapshot.control = thread.control
       end
     end
 
