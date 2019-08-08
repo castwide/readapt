@@ -106,7 +106,6 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      changed
       if (snapshot.event == :thread_begin)
         thr = Thread.new(snapshot.thread_id)
         thr.control = :continue
@@ -116,6 +115,17 @@ module Readapt
           reason: 'started',
           threadId: snapshot.thread_id
         })
+        changed
+        notify_observers('stopped', {
+          reason: 'pause',
+          threadId: snapshot.thread_id
+        })
+        changed
+        notify_observers('continued', {
+          threadId: snapshot.thread_id,
+          allThreadsContinued: false
+        })
+        sleep 0.01
         snapshot.control = :continue
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
@@ -127,6 +137,7 @@ module Readapt
         })
         @stopped.delete thread(snapshot.thread_id)
         @threads.delete snapshot.thread_id
+        sleep 0.01
         snapshot.control = :continue
       elsif snapshot.event == :initialize
         if snapshot.file != @file
