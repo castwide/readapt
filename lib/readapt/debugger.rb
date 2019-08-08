@@ -13,13 +13,10 @@ module Readapt
 
     attr_reader :file
 
-    attr_reader :stopped
-
     def initialize
       @stack = []
       @threads = {}
       @frames = {}
-      @stopped = Set.new
       @running = false
       @attached = false
       @request = nil
@@ -38,6 +35,10 @@ module Readapt
     # @return [Readapt::Thread]
     def thread id
       @threads[id] || Thread::NULL_THREAD
+    end
+
+    def threads
+      @threads.values
     end
 
     def frame id
@@ -124,13 +125,19 @@ module Readapt
       elsif (snapshot.event == :thread_end)
         thr = thread(snapshot.thread_id)
         thr.control = :continue
-        @stopped.delete thread(snapshot.thread_id)
         @threads.delete snapshot.thread_id
         send_event('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
+      # elsif snapshot.event == :thread_run
+      #   thr = thread(snapshot.thread_id)
+      #   send_event('thread', {
+      #     reason: 'running',
+      #     threadId: snapshot.thread_id
+      #   })
+      #   snapshot.control = :continue
       elsif snapshot.event == :initialize
         if snapshot.file != @file
           snapshot.control = :wait
@@ -143,7 +150,6 @@ module Readapt
         changed
         thread = self.thread(snapshot.thread_id)
         thread.control = :pause
-        @stopped.add thread
         frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
         thread.frames.push frame
         @frames[frame.local_id] = frame
@@ -164,7 +170,6 @@ module Readapt
         # end
         @frames.delete frame.local_id
         thread.frames.delete frame
-        @stopped.delete thread
         snapshot.control = thread.control
       end
     end

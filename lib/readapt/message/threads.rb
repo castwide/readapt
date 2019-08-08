@@ -5,7 +5,7 @@ module Readapt
     class Threads < Base
       def run
         set_body({
-          threads: debugger.stopped.map do |thr|
+          threads: debugger.threads.map do |thr|
             {
               id: thr.id,
               name: thr.name
