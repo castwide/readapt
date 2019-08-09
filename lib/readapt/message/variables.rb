@@ -13,33 +13,25 @@ module Readapt
             Variable.new(gv, eval(gv.to_s))
           end
         else
-          obj = ObjectSpace._id2ref(ref)
-          if obj
-            if obj.is_a?(Array)
-              result = []
-              obj.each_with_index do |itm, idx|
-                result.push Variable.new("[#{idx}]", itm)
-              end
-              result
-            elsif obj.is_a?(Hash)
-              result = []
-              obj.each_pair do |idx, itm|
-                result.push Variable.new("[#{idx}]", itm)
-              end
-              result
-            else
-              result = []
-              obj.instance_variables.each do |iv|
-                result.push Variable.new(iv, obj.instance_variable_get(iv))
-              end
-              obj.class.class_variables.each do |cv|
-                result.push Variable.new(cv, obj.class.class_variable_get(cv))
-              end
-              result
+          obj = object_reference
+          result = []
+          if obj.is_a?(Array)
+            obj.each_with_index do |itm, idx|
+              result.push Variable.new("[#{idx}]", itm)
+            end
+          elsif obj.is_a?(Hash)
+            obj.each_pair do |idx, itm|
+              result.push Variable.new("[#{idx}]", itm)
             end
           else
-            []
+            obj.instance_variables.each do |iv|
+              result.push Variable.new(iv, obj.instance_variable_get(iv))
+            end
+            obj.class.class_variables.each do |cv|
+              result.push Variable.new(cv, obj.class.class_variable_get(cv))
+            end
           end
+          result
         end
         set_body({
           variables: vars.map do |var|
@@ -51,6 +43,14 @@ module Readapt
             }
           end
         })
+      end
+
+      private
+
+      def object_reference
+        ObjectSpace._id2ref(arguments['variablesReference'])
+      rescue RangeError
+        nil
       end
     end
   end
