@@ -27,8 +27,8 @@ module Readapt
       @@messages[name] = klass
     end
 
-    def self.process arguments, inspector
-      message = @@messages[arguments['command']].new(arguments['arguments'], inspector)
+    def self.process arguments, debugger
+      message = @@messages[arguments['command']].new(arguments['arguments'], debugger)
       message.run
       message
     rescue Exception => e

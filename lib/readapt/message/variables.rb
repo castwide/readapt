@@ -5,8 +5,6 @@ module Readapt
     class Variables < Base
       def run
         ref = arguments['variablesReference']
-        # frame = inspector.debugger.frames.find { |frm| frm.local_id == ref }
-        # frame = (inspector.frame.local_id == ref ? inspector.frame : nil)
         frame = debugger.frame(ref)
         vars = if frame
           frame.locals
