@@ -13,7 +13,7 @@ module Readapt
 
     attr_reader :file
 
-    def initialize
+    def initialize machine = Machine.new
       @stack = []
       @threads = {}
       @frames = {}
@@ -22,6 +22,7 @@ module Readapt
       @request = nil
       @config = {}
       @original_argv = ARGV.clone
+      @machine = machine
     end
 
     def config arguments, request
@@ -159,7 +160,7 @@ module Readapt
     end
 
     def shutdown
-      Backport.stop
+      @machine.stop
       exit
     end
 

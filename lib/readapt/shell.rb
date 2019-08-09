@@ -1,6 +1,7 @@
 require 'thor'
 require 'socket'
 require 'stringio'
+require 'backport'
 
 module Readapt
   class Shell < Thor
@@ -15,17 +16,18 @@ module Readapt
     option :host, type: :string, aliases: :h, description: 'The server host', default: '127.0.0.1'
     option :port, type: :numeric, aliases: :p, description: 'The server port', default: 1234
     def serve
-      Backport.run do
+      machine = Backport::Machine.new
+      machine.run do
         Signal.trap("INT") do
           Backport.stop
         end
         Signal.trap("TERM") do
           Backport.stop
         end
-        debugger = Readapt::Debugger.new
+        debugger = Readapt::Debugger.new(machine)
         ::Thread.new do
           Readapt::Adapter.host debugger
-          Backport.prepare_tcp_server host: options[:host], port: options[:port], adapter: Readapt::Adapter
+          machine.prepare Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Adapter)
         end
         STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]}"
         # Redirect STDOUT and STDERR through the adapter protocol
