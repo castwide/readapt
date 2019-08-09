@@ -4,7 +4,6 @@ typedef struct thread_reference_struct {
 	int cursor;
 	VALUE prev_file;
 	int prev_line;
-	int stopped;
 	ID control;
 } thread_reference_t;
 
