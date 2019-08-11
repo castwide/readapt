@@ -25,11 +25,9 @@ module Readapt
           Backport.stop
         end
         debugger = Readapt::Debugger.new(machine)
-        ::Thread.new do
-          Readapt::Adapter.host debugger
-          machine.prepare Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Adapter)
-        end
-        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]}"
+        Readapt::Adapter.host debugger
+        machine.prepare Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Adapter)
+        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
         # Redirect STDOUT and STDERR through the adapter protocol
         # @todo This feature does not always work with STDERR, e.g, when
         #   running RSpec

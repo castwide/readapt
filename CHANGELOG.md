@@ -1,3 +1,6 @@
+# 0.3.2 - August 11, 2019
+- Unnecessary thread in Backport.run
+
 # 0.3.1 - August 10. 2019
 - Require Ruby >= 2.2
 
