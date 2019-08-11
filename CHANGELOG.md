@@ -1,3 +1,6 @@
+# 0.3.3 - August 12, 2019
+- Remove RB_NIL_P for backwards compatibility
+
 # 0.3.2 - August 11, 2019
 - Unnecessary thread in Backport.run
 

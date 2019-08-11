@@ -103,7 +103,7 @@ process_line_event(VALUE tracepoint, void *data)
 	ID dapEvent, result;
 
 	ref = thread_current_reference();
-	if (!RB_NIL_P(ref))
+	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
 		if (ptr->depth > 0 /*|| !firstLineEvent*/)
@@ -163,7 +163,7 @@ process_call_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 
 	ref = thread_current_reference();
-	if (!RB_NIL_P(ref))
+	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
 		ptr->depth++;
@@ -177,7 +177,7 @@ process_return_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 	
 	ref = thread_current_reference();
-	if (!RB_NIL_P(ref))
+	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
 		ptr->depth--;
@@ -192,14 +192,14 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
 	here = rb_ary_pop(list);
-	if (!RB_NIL_P(here))
+	if (here != Qnil)
 	{
 		prev = rb_ary_pop(list);
 		{
-			if (!RB_NIL_P(prev))
+			if (prev != Qnil)
 			{
 				ref = thread_reference(prev);
-				if (!RB_NIL_P(ref))
+				if (ref != Qnil)
 				{
 					ref = thread_add_reference(here);
 					ptr = thread_reference_pointer(ref);
@@ -224,7 +224,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 
 	thr = rb_thread_current();
 	ref = thread_reference(thr);
-	if (!RB_NIL_P(ref))
+	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
 		monitor_debug(ptr->prev_file, ptr->prev_line, tracepoint, ptr, rb_intern("thread_end"));
@@ -288,7 +288,7 @@ monitor_pause_s(VALUE self, VALUE id)
 	thread_reference_t *ptr;
 
 	ref = thread_reference_id(id);
-	if (!RB_NIL_P(ref))
+	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
 		ptr->control = rb_intern("pause");
