@@ -1,3 +1,6 @@
+# 0.3.4 - August 12, 2019
+- Monitor normalizes paths.
+
 # 0.3.3 - August 12, 2019
 - Remove RB_NIL_P for backwards compatibility
 
