@@ -1,7 +1,9 @@
 #include "ruby.h"
 #include "ruby/debug.h"
 #include "threads.h"
+#include "normalize.h"
 
+static VALUE readapt;
 static VALUE m_Monitor;
 static VALUE c_Snapshot;
 
@@ -112,7 +114,7 @@ process_line_event(VALUE tracepoint, void *data)
 			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
-				tp_file = rb_tracearg_path(tp);
+				tp_file = normalize_path(rb_tracearg_path(tp));
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
 
 				dapEvent = NULL;
@@ -304,6 +306,7 @@ monitor_know_breakpoints_s(VALUE self)
 
 void initialize_monitor(VALUE m_Readapt)
 {
+	readapt = m_Readapt;
 	m_Monitor = rb_define_module_under(m_Readapt, "Monitor");
 	c_Snapshot = rb_define_class_under(m_Readapt, "Snapshot", rb_cObject);
 
@@ -315,8 +318,8 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 1);
 
 	tpLine = rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, process_line_event, NULL);
-	tpCall = rb_tracepoint_new(Qnil, RUBY_EVENT_CALL | RUBY_EVENT_B_CALL | RUBY_EVENT_CLASS, process_call_event, NULL);
-	tpReturn = rb_tracepoint_new(Qnil, RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN | RUBY_EVENT_END, process_return_event, NULL);
+	tpCall = rb_tracepoint_new(Qnil, RUBY_EVENT_CALL | RUBY_EVENT_B_CALL | RUBY_EVENT_CLASS | RUBY_EVENT_C_CALL, process_call_event, NULL);
+	tpReturn = rb_tracepoint_new(Qnil, RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN | RUBY_EVENT_END | RUBY_EVENT_C_RETURN, process_return_event, NULL);
 	tpThreadBegin = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_BEGIN, process_thread_begin_event, NULL);
 	tpThreadEnd = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_END, process_thread_end_event, NULL);
 	debugProc = Qnil;
