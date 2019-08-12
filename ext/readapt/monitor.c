@@ -1,7 +1,9 @@
 #include "ruby.h"
 #include "ruby/debug.h"
 #include "threads.h"
+#include "normalize.h"
 
+static VALUE readapt;
 static VALUE m_Monitor;
 static VALUE c_Snapshot;
 
@@ -113,10 +115,10 @@ process_line_event(VALUE tracepoint, void *data)
 			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
-				tp_file = rb_funcall(readapt, rb_intern("normalize_path"), 1, rb_tracearg_path(tp));
+				tp_file = normalize_path(rb_tracearg_path(tp));
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
 
-				dapEvent = NULL;
+				dapEvent = rb_intern("continue");
 				if (!firstLineEvent)
 				{
 					dapEvent = rb_intern("initialize");
@@ -137,7 +139,8 @@ process_line_event(VALUE tracepoint, void *data)
 				{
 					dapEvent = rb_intern("entry");
 				}
-				if (dapEvent)
+
+				if (dapEvent != rb_intern("continue"))
 				{
 					result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 					if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
@@ -146,6 +149,11 @@ process_line_event(VALUE tracepoint, void *data)
 						ptr->control = rb_intern("entry");
 						process_line_event(tracepoint, data);
 					}
+				}
+				else
+				{
+					ptr->prev_file = Qnil;
+					ptr->prev_line = Qnil;
 				}
 			}
 			else
