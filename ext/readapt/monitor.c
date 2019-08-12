@@ -117,6 +117,7 @@ process_line_event(VALUE tracepoint, void *data)
 				tp_file = normalize_path(rb_tracearg_path(tp));
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
 
+				dapEvent = rb_intern("continue");
 				if (!firstLineEvent)
 				{
 					dapEvent = rb_intern("initialize");
@@ -137,7 +138,8 @@ process_line_event(VALUE tracepoint, void *data)
 				{
 					dapEvent = rb_intern("entry");
 				}
-				if (dapEvent)
+
+				if (dapEvent != rb_intern("continue"))
 				{
 					result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 					if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
@@ -146,6 +148,11 @@ process_line_event(VALUE tracepoint, void *data)
 						ptr->control = rb_intern("entry");
 						process_line_event(tracepoint, data);
 					}
+				}
+				else
+				{
+					ptr->prev_file = Qnil;
+					ptr->prev_line = Qnil;
 				}
 			}
 			else

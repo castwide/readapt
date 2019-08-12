@@ -4,7 +4,6 @@
 static int isWindows;
 static VALUE zero;
 static VALUE one;
-static VALUE rangeWithoutFirst;
 static VALUE gsub1;
 static VALUE gsub2;
 
@@ -21,16 +20,25 @@ checkIfWindows()
 VALUE
 normalize_path(VALUE str)
 {
-    VALUE letter, path, result;
+    VALUE result;
+    char *buffer;
+    long i, len;
 
-    if (isWindows && str != Qnil)
+    if (isWindows)
     {
-        letter = rb_funcall(str, rb_intern("[]"), 1, zero);
-        path = rb_funcall(str, rb_intern("[]"), 2, one, LONG2NUM(rb_str_strlen(str) - 1));
-        result = rb_str_plus(
-            rb_funcall(letter, rb_intern("upcase"), 0),
-            rb_funcall(path, rb_intern("gsub"), 2, gsub1, gsub2)
-        );
+        buffer = malloc((rb_str_strlen(str) + 1) * sizeof(char));
+        strcpy(buffer, StringValueCStr(str));
+        buffer[0] = toupper(buffer[0]);
+        len = strlen(buffer);
+        for (i = 2; i < len; i++)
+        {
+            if (buffer[i] == '\\')
+            {
+                buffer[i] = '/';
+            }
+        }
+        result = rb_str_new_cstr(buffer);
+        free(buffer);
         return result;
     }
     return str;
@@ -47,8 +55,14 @@ void initialize_normalize(VALUE m_Readapt)
     isWindows = checkIfWindows();
     zero = INT2NUM(0);
     one = INT2NUM(1);
-    gsub1 = rb_str_new_cstr("\\");
+    // gsub1 = rb_str_new_cstr("\\");
+    gsub1 = rb_reg_new("/\\\\/", 6, 0);
     gsub2 = rb_str_new_cstr("/");
-    rangeWithoutFirst = rb_range_new(INT2NUM(1), INT2NUM(-1), 0);
+    
     rb_define_singleton_method(m_Readapt, "normalize_path", normalize_path_s, 1);
+
+    rb_global_variable(&zero);
+    rb_global_variable(&one);
+    rb_global_variable(&gsub1);
+    rb_global_variable(&gsub2);
 }
