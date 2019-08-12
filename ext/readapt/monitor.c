@@ -5,6 +5,7 @@
 static VALUE m_Monitor;
 static VALUE c_Snapshot;
 
+static VALUE readapt;
 static VALUE tpLine;
 static VALUE tpCall;
 static VALUE tpReturn;
@@ -112,7 +113,7 @@ process_line_event(VALUE tracepoint, void *data)
 			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
-				tp_file = rb_tracearg_path(tp);
+				tp_file = rb_funcall(readapt, rb_intern("normalize_path"), 1, rb_tracearg_path(tp));
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
 
 				dapEvent = NULL;
@@ -304,6 +305,7 @@ monitor_know_breakpoints_s(VALUE self)
 
 void initialize_monitor(VALUE m_Readapt)
 {
+	readapt = m_Readapt;
 	m_Monitor = rb_define_module_under(m_Readapt, "Monitor");
 	c_Snapshot = rb_define_class_under(m_Readapt, "Snapshot", rb_cObject);
 
