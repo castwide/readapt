@@ -1,5 +1,6 @@
 #include "ruby.h"
 #include "ruby/debug.h"
+#include <ctype.h>
 
 static int isWindows;
 
