@@ -18,9 +18,6 @@ typedef struct ht_item
 
 typedef struct ht_hash_table
 {
-    // int size_index;
-    // int size;
-    // int count;
     long size;
     ht_item **items;
 } ht_hash_table;

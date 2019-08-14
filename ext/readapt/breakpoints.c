@@ -72,6 +72,11 @@ static VALUE breakpoints_clear_s(VALUE self)
     return Qnil;
 }
 
+long breakpoints_files()
+{
+    return ht->size;
+}
+
 void initialize_breakpoints(VALUE m_Readapt)
 {
     m_Breakpoints = rb_define_module_under(m_Readapt, "Breakpoints");
