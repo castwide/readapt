@@ -16,7 +16,7 @@ static ht_long_array *copy_array(const long *value, const long size)
         items[i] = value[i];
     }
     result = malloc(sizeof(ht_long_array));
-    result->items = items;
+    result->items = (size ? items : NULL);
     result->size = size;
     return result;
 }
