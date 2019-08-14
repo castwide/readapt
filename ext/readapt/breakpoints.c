@@ -36,12 +36,12 @@ static VALUE breakpoints_delete_s(VALUE self, VALUE file)
     return Qnil;
 }
 
-int breakpoints_match(char *file, long line)
+int breakpoints_match_id(ID file, long line)
 {
     ht_long_array *lines;
     long i;
 
-    lines = ht_search(ht, rb_intern(file));
+    lines = ht_search(ht, file);
     if (lines != NULL)
     {
         for (i = 0; i < lines->size; i++)
@@ -53,6 +53,11 @@ int breakpoints_match(char *file, long line)
         }
     }
     return 0;
+}
+
+int breakpoints_match(char *file, long line)
+{
+    return breakpoints_match_id(rb_intern(file), line);
 }
 
 static VALUE breakpoints_match_s(VALUE self, VALUE file, VALUE line)

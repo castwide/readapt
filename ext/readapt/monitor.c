@@ -115,12 +115,18 @@ process_line_event(VALUE tracepoint, void *data)
 		ptr = thread_reference_pointer(ref);
 		if (ptr->depth > 0 /*|| !firstLineEvent*/)
 		{
-			threadPaused = (ptr->control == rb_intern("pause"));
 			tp = rb_tracearg_from_tracepoint(tracepoint);
 			tp_file = normalize_path(rb_tracearg_path(tp));
 			tp_file_id = rb_intern(StringValueCStr(tp_file));
 			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
 
+			if (ptr->prev_file_id == tp_file_id && ptr->prev_line == tp_line)
+			{
+				// rb_funcall(rb_stderr, rb_intern("print"), 1, rb_str_new_cstr("!"));
+				return;
+			}
+
+			threadPaused = (ptr->control == rb_intern("pause"));
 			dapEvent = rb_intern("continue");
 			if (!firstLineEvent)
 			{
@@ -134,7 +140,7 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				dapEvent = rb_intern("step");
 			}
-			else if (breakpoints_match(StringValueCStr(tp_file), tp_line))
+			else if (breakpoints_match_id(tp_file_id, tp_line))
 			{
 				dapEvent = rb_intern("breakpoint");
 			}
@@ -153,6 +159,9 @@ process_line_event(VALUE tracepoint, void *data)
 					process_line_event(tracepoint, data);
 				}
 			}
+
+			ptr->prev_file_id = tp_file_id;
+			ptr->prev_line = tp_line;
 		}
 	}
 }
