@@ -41,14 +41,11 @@ int breakpoints_match(char *file, long line)
     ht_long_array *lines;
     long i;
 
-    rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Looking for a file"));
     lines = ht_search(ht, file);
     if (lines != NULL)
     {
-        rb_funcall(rb_stderr, rb_intern("puts"), 2, rb_str_new_cstr("Found it!"), LONG2NUM(lines->size));
         for (i = 0; i < lines->size; i++)
         {
-            rb_funcall(rb_stderr, rb_intern("puts"), 2, rb_str_new_cstr("Looking at:"), LONG2NUM(lines->items[i]));
             if (lines->items[i] == line)
             {
                 return 1;

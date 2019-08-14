@@ -104,7 +104,7 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 	int threadPaused;
 	ID dapEvent, result;
-	int knownBreakpoints = 0; // TODO Get rid of this?
+	int knownBreakpoints = 1; // TODO Get rid of this?
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
