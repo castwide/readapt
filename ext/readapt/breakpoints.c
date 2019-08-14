@@ -21,7 +21,7 @@ static VALUE breakpoints_set_s(VALUE self, VALUE file, VALUE lines)
     {
         ll[i] = NUM2LONG(rb_ary_entry(lines, i));
     }
-    ht_insert(ht, rb_intern(StringValueCStr(file)), ll, length);
+    ht_insert(ht, StringValueCStr(file), ll, length);
     free(ll);
     return Qnil;
 }
@@ -36,7 +36,7 @@ static VALUE breakpoints_delete_s(VALUE self, VALUE file)
     return Qnil;
 }
 
-int breakpoints_match_id(ID file, long line)
+int breakpoints_match(char *file, long line)
 {
     ht_long_array *lines;
     long i;
@@ -55,10 +55,10 @@ int breakpoints_match_id(ID file, long line)
     return 0;
 }
 
-int breakpoints_match(char *file, long line)
-{
-    return breakpoints_match_id(rb_intern(file), line);
-}
+// int breakpoints_match(char *file, long line)
+// {
+//     return breakpoints_match_id(rb_intern(file), line);
+// }
 
 static VALUE breakpoints_match_s(VALUE self, VALUE file, VALUE line)
 {

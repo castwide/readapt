@@ -115,7 +115,8 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				dapEvent = rb_intern("step");
 			}
-			else if (breakpoints_match_id(tp_file_id, tp_line))
+			// else if (breakpoints_match_id(tp_file_id, tp_line))
+			else if (breakpoints_match(StringValueCStr(tp_file), tp_line))
 			{
 				dapEvent = rb_intern("breakpoint");
 			}

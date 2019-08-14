@@ -5,6 +5,34 @@
 #include "hash_table.h"
 #include "ruby.h"
 
+static unsigned long long int ipow(int base, int exp)
+{
+    unsigned long long int result = 1ULL;
+    while (exp)
+    {
+        if (exp & 1)
+        {
+            result *= (unsigned long long int)base;
+        }
+        exp >>= 1;
+        base *= base;
+    }
+    return result;
+}
+
+static ht_key ht_generate_key(char *string)
+{
+    long i;
+    long num = 0;
+    ht_key result = 0;
+    for (i = strlen(string) - 1; i >= 0; i--)
+    {
+        result += ((long)string[i] * ipow((sizeof(char) * 255), num));
+        num++;
+    }
+    return result;
+}
+
 static ht_long_array *copy_array(const long *value, const long size)
 {
     long i;
@@ -24,7 +52,7 @@ static ht_long_array *copy_array(const long *value, const long size)
 /*
  * Initialize a new item
  */
-static ht_item *ht_new_item(ID key, const long *value, const long size)
+static ht_item *ht_new_item(ht_key key, const long *value, const long size)
 {
     ht_item *i = malloc(sizeof(ht_item));
     i->key = key;
@@ -70,18 +98,77 @@ void ht_del_hash_table(ht_hash_table *ht)
     free(ht);
 }
 
-/*
- * Add an item to the hash table
- */
-void ht_insert(ht_hash_table *ht, ID key, const long *value, const long size)
+static ht_long_array *ht_search_part(ht_hash_table *ht, ht_key key, long cursor, long next)
+{
+    if (cursor >= ht->size)
+    {
+        return NULL;
+    }
+
+    if (ht->items[cursor]->key == key)
+    {
+        return ht->items[cursor]->value;
+    }
+    if (next > cursor && next < ht->size)
+    {
+        if (ht->items[next]->key == key)
+        {
+            return ht->items[next]->value;
+        }
+        if (ht->items[next]->key > key)
+        {
+            return ht_search_part(ht, key, next + 1, next + ((ht->size - next) / 2));
+        }
+        else
+        {
+            return ht_search_part(ht, key, cursor + 1, next / 2);
+        }
+    }
+    return ht_search_part(ht, key, cursor + 1, next / 2);
+}
+
+static ht_long_array *ht_search_key(ht_hash_table *ht, ht_key key)
+{
+    return ht_search_part(ht, key, 0, ht->size / 2);
+}
+
+static void ht_delete_key(ht_hash_table *ht, ht_key key)
+{
+    ht_long_array *found;
+    ht_item **tmp;
+    long i;
+    long cursor = 0;
+
+    found = ht_search_key(ht, key);
+    if (found)
+    {
+        tmp = malloc(sizeof(ht_item) * (ht->size - 1));
+        for (i = 0; i < ht->size; i++)
+        {
+            if (ht->items[i]->key == key)
+            {
+                ht_del_item(ht->items[i]);
+            }
+            else
+            {
+                tmp[cursor] = ht->items[cursor];
+                cursor++;
+            }
+        }
+        free(ht->items);
+        ht->items = tmp;
+        ht->size--;
+    }
+}
+
+static void ht_insert_key(ht_hash_table *ht, ht_key key, const long *value, const long size)
 {
     ht_item *item;
     ht_item **tmp;
     long i;
     long cursor = 0;
     int inserted = 0;
-
-    ht_delete(ht, key);
+    ht_delete_key(ht, key);
 
     item = ht_new_item(key, value, size);
     tmp = malloc(sizeof(ht_item) * (ht->size + 1));
@@ -118,71 +205,26 @@ void ht_insert(ht_hash_table *ht, ID key, const long *value, const long size)
     ht->size++;
 }
 
-static ht_long_array *ht_search_part(ht_hash_table *ht, ID key, long cursor, long next)
+/*
+ * Add an item to the hash table
+ */
+void ht_insert(ht_hash_table *ht, char *key, const long *value, const long size)
 {
-    if (cursor >= ht->size)
-    {
-        return NULL;
-    }
-
-    if (ht->items[cursor]->key == key)
-    {
-        return ht->items[cursor]->value;
-    }
-    if (next > cursor && next < ht->size)
-    {
-        if (ht->items[next]->key == key)
-        {
-            return ht->items[next]->value;
-        }
-        if (ht->items[next]->key > key)
-        {
-            return ht_search_part(ht, key, next + 1, next + ((ht->size - next) / 2));
-        }
-        else
-        {
-            return ht_search_part(ht, key, cursor + 1, next / 2);
-        }
-    }
-    return ht_search_part(ht, key, cursor + 1, next / 2);
+    ht_insert_key(ht, ht_generate_key(key), value, size);
 }
 
 /*
  * Get the key's value or NULL if it doesn't exist
  */
-ht_long_array *ht_search(ht_hash_table *ht, ID key)
+ht_long_array *ht_search(ht_hash_table *ht, char *key)
 {
-    return ht_search_part(ht, key, 0, ht->size / 2);
+    return ht_search_key(ht, ht_generate_key(key));
 }
 
 /*
  * Delete the key's item if it exists
  */
-void ht_delete(ht_hash_table *ht, ID key)
+void ht_delete(ht_hash_table *ht, char *key)
 {
-    ht_long_array *found;
-    ht_item **tmp;
-    long i;
-    long cursor = 0;
-
-    found = ht_search(ht, key);
-    if (found)
-    {
-        tmp = malloc(sizeof(ht_item) * (ht->size - 1));
-        for (i = 0; i < ht->size; i++)
-        {
-            if (ht->items[i]->key == key)
-            {
-                ht_del_item(ht->items[i]);
-            }
-            else
-            {
-                tmp[cursor] = ht->items[cursor];
-                cursor++;
-            }
-        }
-        free(ht->items);
-        ht->items = tmp;
-        ht->size--;
-    }
+    ht_delete_key(ht, ht_generate_key(key));
 }
