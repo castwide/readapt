@@ -21,7 +21,7 @@ static VALUE breakpoints_set_s(VALUE self, VALUE file, VALUE lines)
     {
         ll[i] = NUM2LONG(rb_ary_entry(lines, i));
     }
-    ht_insert(ht, StringValueCStr(file), ll, length);
+    ht_insert(ht, rb_intern(StringValueCStr(file)), ll, length);
     free(ll);
     return Qnil;
 }
@@ -42,7 +42,7 @@ int breakpoints_match(char *file, long line)
     long i;
 
     rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("Looking for a file"));
-    lines = ht_search(ht, file);
+    lines = ht_search(ht, rb_intern(file));
     if (lines != NULL)
     {
         rb_funcall(rb_stderr, rb_intern("puts"), 2, rb_str_new_cstr("Found it!"), LONG2NUM(lines->size));
@@ -63,12 +63,20 @@ static VALUE breakpoints_match_s(VALUE self, VALUE file, VALUE line)
     return breakpoints_match(StringValueCStr(file), NUM2LONG(line)) == 0 ? Qfalse : Qtrue;
 }
 
+static VALUE breakpoints_clear_s(VALUE self)
+{
+    ht_del_hash_table(ht);
+    ht = ht_new();
+    return Qnil;
+}
+
 void initialize_breakpoints(VALUE m_Readapt)
 {
     m_Breakpoints = rb_define_module_under(m_Readapt, "Breakpoints");
     rb_define_singleton_method(m_Breakpoints, "set", breakpoints_set_s, 2);
     rb_define_singleton_method(m_Breakpoints, "delete", breakpoints_delete_s, 1);
     rb_define_singleton_method(m_Breakpoints, "match", breakpoints_match_s, 2);
+    rb_define_singleton_method(m_Breakpoints, "clear", breakpoints_clear_s, 0);
 
     ht = ht_new(); // TODO Need to free?
 }

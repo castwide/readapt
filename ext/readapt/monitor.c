@@ -104,7 +104,6 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 	int threadPaused;
 	ID dapEvent, result;
-	int knownBreakpoints = 0; // TODO Get rid of this?
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
@@ -113,48 +112,51 @@ process_line_event(VALUE tracepoint, void *data)
 		if (ptr->depth > 0 /*|| !firstLineEvent*/)
 		{
 			threadPaused = (ptr->control == rb_intern("pause"));
-			if (!firstLineEvent || threadPaused || knownBreakpoints || ptr->control != rb_intern("continue"))
+			if (!firstLineEvent || threadPaused || ptr->control != rb_intern("continue"))
 			{
 				tp = rb_tracearg_from_tracepoint(tracepoint);
 				tp_file = normalize_path(rb_tracearg_path(tp));
 				tp_line = NUM2INT(rb_tracearg_lineno(tp));
 
-				dapEvent = rb_intern("continue");
-				if (!firstLineEvent)
+				if (!match_line(tp_file, tp_line, ptr))
 				{
-					dapEvent = rb_intern("initialize");
-				}
-				else if (threadPaused)
-				{
-					dapEvent = rb_intern("pause");
-				}
-				else if (match_step(ptr))
-				{
-					dapEvent = rb_intern("step");
-				}
-				else if (match_breakpoint(tp_file, tp_line))
-				{
-					dapEvent = rb_intern("breakpoint");
-				}
-				else if (ptr->control == rb_intern("entry"))
-				{
-					dapEvent = rb_intern("entry");
-				}
-
-				if (dapEvent != rb_intern("continue"))
-				{
-					result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
-					if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
+					dapEvent = rb_intern("continue");
+					if (!firstLineEvent)
 					{
-						firstLineEvent = 1;
-						ptr->control = rb_intern("entry");
-						process_line_event(tracepoint, data);
+						dapEvent = rb_intern("initialize");
 					}
-				}
-				else
-				{
-					ptr->prev_file = Qnil;
-					ptr->prev_line = Qnil;
+					else if (threadPaused)
+					{
+						dapEvent = rb_intern("pause");
+					}
+					else if (match_step(ptr))
+					{
+						dapEvent = rb_intern("step");
+					}
+					else if (match_breakpoint(tp_file, tp_line))
+					{
+						dapEvent = rb_intern("breakpoint");
+					}
+					else if (ptr->control == rb_intern("entry"))
+					{
+						dapEvent = rb_intern("entry");
+					}
+
+					if (dapEvent != rb_intern("continue"))
+					{
+						result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
+						if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
+						{
+							firstLineEvent = 1;
+							ptr->control = rb_intern("entry");
+							process_line_event(tracepoint, data);
+						}
+					}
+					else
+					{
+						ptr->prev_file = Qnil;
+						ptr->prev_line = Qnil;
+					}
 				}
 			}
 			else

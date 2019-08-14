@@ -1,3 +1,6 @@
+#ifndef THREADS_H_
+#define THREADS_H_
+
 typedef struct thread_reference_struct {
 	long id;
 	int depth;
@@ -16,3 +19,5 @@ VALUE thread_delete_reference(VALUE);
 thread_reference_t *thread_reference_pointer(VALUE);
 void thread_pause();
 void thread_reset();
+
+#endif
