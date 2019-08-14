@@ -11,21 +11,5 @@ module Readapt
   #   Disable tracepoints.
   #   @return [Boolean]
   module Monitor
-    @@breakpoints = Breakpoints.new
-
-    # @return [Breakpoints]
-    def self.breakpoints
-      @@breakpoints
-    end
-
-    def self.set_breakpoints bps
-      @@breakpoints = bps
-    end
-
-    def self.update
-      know_breakpoints
-    end
-
-    @@breakpoints.add_observer self
   end
 end

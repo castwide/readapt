@@ -2,6 +2,7 @@
 #include "ruby/debug.h"
 #include "threads.h"
 #include "normalize.h"
+#include "breakpoints.h"
 
 static VALUE readapt;
 static VALUE m_Monitor;
@@ -14,8 +15,6 @@ static VALUE tpReturn;
 static VALUE tpThreadBegin;
 static VALUE tpThreadEnd;
 static VALUE debugProc;
-static VALUE breakpoints;
-static int knownBreakpoints;
 static int firstLineEvent = 0;
 
 static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
@@ -28,20 +27,21 @@ static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
 
 static int match_breakpoint(VALUE file, int line)
 {
-	VALUE bps, b;
-	long len, i;
+	// TODO Use new breakpoints
+	// VALUE bps, b;
+	// long len, i;
 
-	bps = rb_funcall(breakpoints, rb_intern("for"), 1, file);
-	len = rb_array_len(bps);
-	for (i = 0; i < len; i++)
-	{
-		b = rb_ary_entry(bps, i);
-		if (NUM2INT(rb_funcall(b, rb_intern("line"), 0)) == line)
-		{
-			return 1;
-		}
-	}
-	return 0;
+	// bps = rb_funcall(breakpoints, rb_intern("for"), 1, file);
+	// len = rb_array_len(bps);
+	// for (i = 0; i < len; i++)
+	// {
+	// 	b = rb_ary_entry(bps, i);
+	// 	if (NUM2INT(rb_funcall(b, rb_intern("line"), 0)) == line)
+	// 	{
+	// 		return 1;
+	// 	}
+	// }
+	return breakpoints_match(StringValueCStr(file), line);
 }
 
 static int match_step(thread_reference_t *ptr)
@@ -104,6 +104,7 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 	int threadPaused;
 	ID dapEvent, result;
+	int knownBreakpoints = 0; // TODO Get rid of this?
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
@@ -302,12 +303,6 @@ monitor_pause_s(VALUE self, VALUE id)
 		ptr = thread_reference_pointer(ref);
 		ptr->control = rb_intern("pause");
 	}
-}
-
-static VALUE
-monitor_know_breakpoints_s(VALUE self)
-{
-	knownBreakpoints = (rb_funcall(breakpoints, rb_intern("empty?"), 0) == Qfalse) ? 1 : 0;
 	return Qnil;
 }
 
@@ -321,7 +316,6 @@ void initialize_monitor(VALUE m_Readapt)
 
 	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 0);
 	rb_define_singleton_method(m_Monitor, "stop", monitor_disable_s, 0);
-	rb_define_singleton_method(m_Monitor, "know_breakpoints", monitor_know_breakpoints_s, 0);
 	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 1);
 
 	tpLine = rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, process_line_event, NULL);
@@ -330,8 +324,6 @@ void initialize_monitor(VALUE m_Readapt)
 	tpThreadBegin = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_BEGIN, process_thread_begin_event, NULL);
 	tpThreadEnd = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_END, process_thread_end_event, NULL);
 	debugProc = Qnil;
-	breakpoints = rb_funcall(m_Monitor, rb_intern("breakpoints"), 0);
-	knownBreakpoints = 0;
 
 	// Avoid garbage collection
 	rb_global_variable(&tpLine);
