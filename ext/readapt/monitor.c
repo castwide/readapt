@@ -17,32 +17,37 @@ static VALUE tpThreadEnd;
 static VALUE debugProc;
 static int firstLineEvent = 0;
 
-static int match_line(VALUE next_file, int next_line, thread_reference_t *ptr)
-{
-	if (rb_str_equal(next_file, ptr->prev_file) && next_line == ptr->prev_line) {
-		return 1;
-	}
-	return 0;
-}
+// static int match_line(VALUE next_file, long next_line, thread_reference_t *ptr)
+// {
+// 	if (ptr->prev_file == Qnil || ptr->prev_line == 0)
+// 	{
+// 		return 0;
+// 	}
+// 	if (rb_str_equal(next_file, ptr->prev_file) && next_line == ptr->prev_line) {
+// 		return 1;
+// 	}
+// 	return 0;
+// }
 
-static int match_breakpoint(VALUE file, int line)
-{
-	// TODO Use new breakpoints
-	// VALUE bps, b;
-	// long len, i;
+// static int match_breakpoint(VALUE file, long line)
+// {
+// 	// TODO Use new breakpoints
+// 	// VALUE bps, b;
+// 	// long len, i;
 
-	// bps = rb_funcall(breakpoints, rb_intern("for"), 1, file);
-	// len = rb_array_len(bps);
-	// for (i = 0; i < len; i++)
-	// {
-	// 	b = rb_ary_entry(bps, i);
-	// 	if (NUM2INT(rb_funcall(b, rb_intern("line"), 0)) == line)
-	// 	{
-	// 		return 1;
-	// 	}
-	// }
-	return breakpoints_match(StringValueCStr(file), line);
-}
+// 	// bps = rb_funcall(breakpoints, rb_intern("for"), 1, file);
+// 	// len = rb_array_len(bps);
+// 	// for (i = 0; i < len; i++)
+// 	// {
+// 	// 	b = rb_ary_entry(bps, i);
+// 	// 	if (NUM2INT(rb_funcall(b, rb_intern("line"), 0)) == line)
+// 	// 	{
+// 	// 		return 1;
+// 	// 	}
+// 	// }
+// 	// rb_funcall(rb_stderr, rb_intern("print"), 1, rb_str_new_cstr("!"));
+// 	return breakpoints_match(StringValueCStr(file), line);
+// }
 
 static int match_step(thread_reference_t *ptr)
 {
@@ -66,7 +71,7 @@ static int match_step(thread_reference_t *ptr)
 }
 
 static ID
-monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, ID event)
+monitor_debug(VALUE file, long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
 	VALUE bind, bid, snapshot, result;
 
@@ -90,8 +95,6 @@ monitor_debug(VALUE file, int line, VALUE tracepoint, thread_reference_t *ptr, I
 		ptr->cursor = ptr->depth;
 		ptr->control = result;
 	}
-	ptr->prev_file = file;
-	ptr->prev_line = line;
 	return result;
 }
 
@@ -99,7 +102,8 @@ static void
 process_line_event(VALUE tracepoint, void *data)
 {
 	VALUE ref, tp_file;
-	int tp_line;
+	ID tp_file_id;
+	long tp_line;
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
 	int threadPaused;
@@ -112,57 +116,42 @@ process_line_event(VALUE tracepoint, void *data)
 		if (ptr->depth > 0 /*|| !firstLineEvent*/)
 		{
 			threadPaused = (ptr->control == rb_intern("pause"));
-			if (!firstLineEvent || threadPaused || ptr->control != rb_intern("continue"))
+			tp = rb_tracearg_from_tracepoint(tracepoint);
+			tp_file = normalize_path(rb_tracearg_path(tp));
+			tp_file_id = rb_intern(StringValueCStr(tp_file));
+			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
+
+			dapEvent = rb_intern("continue");
+			if (!firstLineEvent)
 			{
-				tp = rb_tracearg_from_tracepoint(tracepoint);
-				tp_file = normalize_path(rb_tracearg_path(tp));
-				tp_line = NUM2INT(rb_tracearg_lineno(tp));
-
-				if (!match_line(tp_file, tp_line, ptr))
-				{
-					dapEvent = rb_intern("continue");
-					if (!firstLineEvent)
-					{
-						dapEvent = rb_intern("initialize");
-					}
-					else if (threadPaused)
-					{
-						dapEvent = rb_intern("pause");
-					}
-					else if (match_step(ptr))
-					{
-						dapEvent = rb_intern("step");
-					}
-					else if (match_breakpoint(tp_file, tp_line))
-					{
-						dapEvent = rb_intern("breakpoint");
-					}
-					else if (ptr->control == rb_intern("entry"))
-					{
-						dapEvent = rb_intern("entry");
-					}
-
-					if (dapEvent != rb_intern("continue"))
-					{
-						result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
-						if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
-						{
-							firstLineEvent = 1;
-							ptr->control = rb_intern("entry");
-							process_line_event(tracepoint, data);
-						}
-					}
-					else
-					{
-						ptr->prev_file = Qnil;
-						ptr->prev_line = Qnil;
-					}
-				}
+				dapEvent = rb_intern("initialize");
 			}
-			else
+			else if (threadPaused)
 			{
-				ptr->prev_file = Qnil;
-				ptr->prev_line = Qnil;
+				dapEvent = rb_intern("pause");
+			}
+			else if (match_step(ptr))
+			{
+				dapEvent = rb_intern("step");
+			}
+			else if (breakpoints_match(StringValueCStr(tp_file), tp_line))
+			{
+				dapEvent = rb_intern("breakpoint");
+			}
+			else if (ptr->control == rb_intern("entry"))
+			{
+				dapEvent = rb_intern("entry");
+			}
+
+			if (dapEvent != rb_intern("continue"))
+			{
+				result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
+				if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
+				{
+					firstLineEvent = 1;
+					ptr->control = rb_intern("entry");
+					process_line_event(tracepoint, data);
+				}
 			}
 		}
 	}
@@ -217,7 +206,7 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 					ptr = thread_reference_pointer(ref);
 					monitor_debug(
 						rb_funcall(tracepoint, rb_intern("path"), 0),
-						NUM2INT(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
+						NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
 						tracepoint,
 						ptr,
 						rb_intern("thread_begin")
@@ -239,7 +228,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		monitor_debug(ptr->prev_file, ptr->prev_line, tracepoint, ptr, rb_intern("thread_end"));
+		monitor_debug(rb_funcall(tracepoint, rb_intern("path"), 0), NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)), tracepoint, ptr, rb_intern("thread_end"));
 		thread_delete_reference(thr);
 	}
 }

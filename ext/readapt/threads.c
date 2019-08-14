@@ -39,6 +39,8 @@ VALUE thread_reference_new(VALUE thr)
 	data->depth = 0;
 	data->cursor = 0;
 	data->control = rb_intern("continue");
+	data->prev_file_id = 0;
+	data->prev_line = 0;
 	return obj;
 }
 

@@ -5,8 +5,8 @@ typedef struct thread_reference_struct {
 	long id;
 	int depth;
 	int cursor;
-	VALUE prev_file;
-	int prev_line;
+	ID prev_file_id;
+	long prev_line;
 	ID control;
 } thread_reference_t;
 
