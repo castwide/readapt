@@ -23,7 +23,7 @@ module Readapt
             obj.each_pair do |idx, itm|
               result.push Variable.new("[#{idx}]", itm)
             end
-          else
+          elsif !obj.nil?
             obj.instance_variables.each do |iv|
               result.push Variable.new(iv, obj.instance_variable_get(iv))
             end
