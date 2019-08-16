@@ -1,3 +1,6 @@
+# 0.3.5 - August 16, 2019
+- Variables message checks for null frames
+
 # 0.3.4 - August 12, 2019
 - Monitor normalizes paths.
 
