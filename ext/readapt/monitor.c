@@ -79,6 +79,7 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 	int threadPaused;
 	ID dapEvent, result;
+	int cmp;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
@@ -94,11 +95,6 @@ process_line_event(VALUE tracepoint, void *data)
 			tp = rb_tracearg_from_tracepoint(tracepoint);
 			tp_file = normalize_path(rb_tracearg_path(tp));
 			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
-
-			if (ptr->prev_line == tp_line && strcmp(ptr->prev_file, StringValueCStr(tp_file)) == 0)
-			{
-				return;
-			}
 
 			dapEvent = id_continue;
 			if (!firstLineEvent)
@@ -133,8 +129,6 @@ process_line_event(VALUE tracepoint, void *data)
 					process_line_event(tracepoint, data);
 				}
 			}
-			thread_reference_set_prev_file(ptr, StringValueCStr(tp_file));
-			ptr->prev_line = tp_line;
 		}
 	}
 }
