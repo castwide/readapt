@@ -11,7 +11,7 @@ void breakpoints_set(char *file, long *lines)
 
 static VALUE breakpoints_set_s(VALUE self, VALUE file, VALUE lines)
 {
-    long length = rb_array_len(lines);
+    long length = rb_funcall(lines, rb_intern("length"), 0);
     long *ll;
     long i;
 
