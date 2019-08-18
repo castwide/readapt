@@ -15,7 +15,6 @@ static VALUE breakpoints_set_s(VALUE self, VALUE file, VALUE lines)
     long *ll;
     long i;
 
-    rb_funcall(rb_stderr, rb_intern("puts"), 2, rb_str_new_cstr("Length of set array:"), LONG2NUM(length));
     ll = malloc(sizeof(long) * length);
     for (i = 0; i < length; i++)
     {

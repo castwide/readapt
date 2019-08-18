@@ -150,6 +150,11 @@ static void ht_insert_key(ht_hash_table *ht, char *key, const long *value, const
 
     ht_delete_key(ht, key);
 
+    if (size == 0)
+    {
+        return;
+    }
+
     item = ht_new_item(key, value, size);
     tmp = malloc(sizeof(ht_item) * (ht->size + 1));
 
