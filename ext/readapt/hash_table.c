@@ -5,34 +5,6 @@
 #include "hash_table.h"
 #include "ruby.h"
 
-static unsigned long long int ipow(int base, int exp)
-{
-    unsigned long long int result = 1ULL;
-    while (exp)
-    {
-        if (exp & 1)
-        {
-            result *= (unsigned long long int)base;
-        }
-        exp >>= 1;
-        base *= base;
-    }
-    return result;
-}
-
-static ht_key ht_generate_key(char *string)
-{
-    long i;
-    long num = 0;
-    ht_key result = 0;
-    for (i = strlen(string) - 1; i >= 0; i--)
-    {
-        result += ((long)string[i] * ipow((sizeof(char) * 255), num));
-        num++;
-    }
-    return result;
-}
-
 static ht_long_array *copy_array(const long *value, const long size)
 {
     long i;
@@ -52,10 +24,11 @@ static ht_long_array *copy_array(const long *value, const long size)
 /*
  * Initialize a new item
  */
-static ht_item *ht_new_item(ht_key key, const long *value, const long size)
+static ht_item *ht_new_item(char *key, const long *value, const long size)
 {
     ht_item *i = malloc(sizeof(ht_item));
-    i->key = key;
+    i->key = malloc(sizeof(char) * (strlen(key) + 1));
+    strcpy(i->key, key);
     i->value = copy_array(value, size);
     return i;
 }
@@ -65,6 +38,7 @@ static ht_item *ht_new_item(ht_key key, const long *value, const long size)
  */
 static void ht_del_item(ht_item *i)
 {
+    free(i->key);
     free(i->value->items);
     free(i);
 }
@@ -98,24 +72,28 @@ void ht_del_hash_table(ht_hash_table *ht)
     free(ht);
 }
 
-static ht_long_array *ht_search_part(ht_hash_table *ht, ht_key key, long cursor, long next)
+static ht_long_array *ht_search_part(ht_hash_table *ht, char *key, long cursor, long next)
 {
+    int cmp;
+
     if (cursor >= ht->size)
     {
         return NULL;
     }
 
-    if (ht->items[cursor]->key == key)
+    cmp = strcmp(ht->items[cursor]->key, key);
+    if (cmp == 0)
     {
         return ht->items[cursor]->value;
     }
     if (next > cursor && next < ht->size)
     {
-        if (ht->items[next]->key == key)
+        cmp = strcmp(ht->items[next]->key, key);
+        if (cmp == 0)
         {
             return ht->items[next]->value;
         }
-        if (ht->items[next]->key > key)
+        else if (cmp < 0)
         {
             return ht_search_part(ht, key, next + 1, next + ((ht->size - next) / 2));
         }
@@ -127,12 +105,12 @@ static ht_long_array *ht_search_part(ht_hash_table *ht, ht_key key, long cursor,
     return ht_search_part(ht, key, cursor + 1, next / 2);
 }
 
-static ht_long_array *ht_search_key(ht_hash_table *ht, ht_key key)
+static ht_long_array *ht_search_key(ht_hash_table *ht, char *key)
 {
     return ht_search_part(ht, key, 0, ht->size / 2);
 }
 
-static void ht_delete_key(ht_hash_table *ht, ht_key key)
+static void ht_delete_key(ht_hash_table *ht, char *key)
 {
     ht_long_array *found;
     ht_item **tmp;
@@ -161,13 +139,15 @@ static void ht_delete_key(ht_hash_table *ht, ht_key key)
     }
 }
 
-static void ht_insert_key(ht_hash_table *ht, ht_key key, const long *value, const long size)
+static void ht_insert_key(ht_hash_table *ht, char *key, const long *value, const long size)
 {
     ht_item *item;
     ht_item **tmp;
     long i;
     long cursor = 0;
     int inserted = 0;
+    int cmp;
+
     ht_delete_key(ht, key);
 
     item = ht_new_item(key, value, size);
@@ -184,7 +164,8 @@ static void ht_insert_key(ht_hash_table *ht, ht_key key, const long *value, cons
             }
             else
             {
-                if (item->key > ht->items[i]->key)
+                cmp = strcmp(item->key, ht->items[i]->key);
+                if (cmp > 0)
                 {
                     tmp[i] = item;
                     tmp[i + 1] = ht->items[cursor];
@@ -210,7 +191,7 @@ static void ht_insert_key(ht_hash_table *ht, ht_key key, const long *value, cons
  */
 void ht_insert(ht_hash_table *ht, char *key, const long *value, const long size)
 {
-    ht_insert_key(ht, ht_generate_key(key), value, size);
+    ht_insert_key(ht, key, value, size);
 }
 
 /*
@@ -218,7 +199,7 @@ void ht_insert(ht_hash_table *ht, char *key, const long *value, const long size)
  */
 ht_long_array *ht_search(ht_hash_table *ht, char *key)
 {
-    return ht_search_key(ht, ht_generate_key(key));
+    return ht_search_key(ht, key);
 }
 
 /*
@@ -226,5 +207,5 @@ ht_long_array *ht_search(ht_hash_table *ht, char *key)
  */
 void ht_delete(ht_hash_table *ht, char *key)
 {
-    ht_delete_key(ht, ht_generate_key(key));
+    ht_delete_key(ht, key);
 }

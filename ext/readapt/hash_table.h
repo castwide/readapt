@@ -3,8 +3,6 @@
 
 #include "ruby.h"
 
-typedef unsigned long long ht_key;
-
 typedef struct ht_long_array
 {
     long *items;
@@ -14,7 +12,7 @@ typedef struct ht_long_array
 // ht_item is an item in the hash table
 typedef struct ht_item
 {
-    ht_key key;
+    char *key;
     ht_long_array *value;
 } ht_item;
 
