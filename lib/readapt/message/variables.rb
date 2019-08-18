@@ -6,7 +6,7 @@ module Readapt
       def run
         ref = arguments['variablesReference']
         frame = debugger.frame(ref)
-        vars = if frame
+        vars = if frame != Frame::NULL_FRAME && !frame.nil?
           frame.locals
         elsif ref == TOPLEVEL_BINDING.receiver.object_id
           global_variables.map do |gv|
