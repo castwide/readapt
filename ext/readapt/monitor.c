@@ -16,6 +16,7 @@ static VALUE tpThreadBegin;
 static VALUE tpThreadEnd;
 static VALUE debugProc;
 static int firstLineEvent = 0;
+static VALUE entryFile;
 
 static ID id_continue;
 static ID id_pause;
@@ -78,13 +79,13 @@ process_line_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
 	int threadPaused;
-	ID dapEvent, result;
+	ID dapEvent;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		if (ptr->depth > 0 /*|| !firstLineEvent*/)
+		if (ptr->depth > 0)
 		{
 			threadPaused = (ptr->control == id_pause);
 			if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
@@ -98,7 +99,12 @@ process_line_event(VALUE tracepoint, void *data)
 			dapEvent = id_continue;
 			if (!firstLineEvent)
 			{
-				dapEvent = rb_intern("initialize");
+				if (rb_str_equal(tp_file, entryFile))
+				{
+					firstLineEvent = 1;
+					ptr->control = rb_intern("entry");
+					process_line_event(tracepoint, data);
+				}
 			}
 			else if (threadPaused)
 			{
@@ -108,7 +114,6 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				dapEvent = rb_intern("step");
 			}
-			// else if (breakpoints_match_id(tp_file_id, tp_line))
 			else if (breakpoints_match(StringValueCStr(tp_file), tp_line))
 			{
 				dapEvent = rb_intern("breakpoint");
@@ -120,13 +125,7 @@ process_line_event(VALUE tracepoint, void *data)
 
 			if (dapEvent != id_continue)
 			{
-				result = monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
-				if (dapEvent == rb_intern("initialize") && result == rb_intern("ready"))
-				{
-					firstLineEvent = 1;
-					ptr->control = rb_intern("entry");
-					process_line_event(tracepoint, data);
-				}
+				monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 			}
 		}
 	}
@@ -209,7 +208,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 }
 
 static VALUE
-monitor_enable_s(VALUE self)
+monitor_enable_s(VALUE self, VALUE file)
 {
 	VALUE previous, ref;
 	thread_reference_t *ptr;
@@ -221,7 +220,8 @@ monitor_enable_s(VALUE self)
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
 
-	firstLineEvent = 0;
+	entryFile = file;
+	firstLineEvent = (entryFile == Qnil ? 1 : 0);
 
 	ref = thread_add_reference(rb_thread_current());
 	ptr = thread_reference_pointer(ref);
@@ -280,7 +280,7 @@ void initialize_monitor(VALUE m_Readapt)
 
 	initialize_threads();
 
-	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 0);
+	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 1);
 	rb_define_singleton_method(m_Monitor, "stop", monitor_disable_s, 0);
 	rb_define_singleton_method(m_Monitor, "pause", monitor_pause_s, 1);
 
@@ -301,4 +301,5 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_global_variable(&tpReturn);
 	rb_global_variable(&tpThreadBegin);
 	rb_global_variable(&tpThreadEnd);
+	rb_global_variable(&entryFile);
 }

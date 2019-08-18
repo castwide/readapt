@@ -67,7 +67,7 @@ module Readapt
       send_event('process', {
         name: @file
       })
-      Monitor.start do |snapshot|
+      Monitor.start @file do |snapshot|
         debug snapshot
       end
       yield if block_given?
@@ -123,12 +123,6 @@ module Readapt
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
-      elsif snapshot.event == :initialize
-        if snapshot.file != @file
-          snapshot.control = :wait
-        else
-          snapshot.control = :ready
-        end
       elsif snapshot.event == :entry
         snapshot.control = :continue
       else
