@@ -79,7 +79,6 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *tp;
 	int threadPaused;
 	ID dapEvent, result;
-	int cmp;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
