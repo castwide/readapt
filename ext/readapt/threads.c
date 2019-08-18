@@ -39,7 +39,7 @@ VALUE thread_reference_new(VALUE thr)
 	data->depth = 0;
 	data->cursor = 0;
 	data->control = rb_intern("continue");
-	data->prev_file_id = 0;
+	data->prev_file = NULL;
 	data->prev_line = 0;
 	return obj;
 }
@@ -49,6 +49,13 @@ thread_reference_t *thread_reference_pointer(VALUE ref)
 	thread_reference_t *ptr;
     TypedData_Get_Struct(ref, thread_reference_t, &thread_reference_type, ptr);
     return ptr;
+}
+
+void thread_reference_set_prev_file(thread_reference_t *thr, char *file)
+{
+	free(thr->prev_file);
+	thr->prev_file = malloc(sizeof(char) * (strlen(file) + 1));
+	strcpy(thr->prev_file, file);
 }
 
 VALUE thread_current_reference()

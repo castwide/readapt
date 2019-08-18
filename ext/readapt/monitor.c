@@ -74,7 +74,6 @@ static void
 process_line_event(VALUE tracepoint, void *data)
 {
 	VALUE ref, tp_file;
-	ID tp_file_id;
 	long tp_line;
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
@@ -94,10 +93,9 @@ process_line_event(VALUE tracepoint, void *data)
 			}
 			tp = rb_tracearg_from_tracepoint(tracepoint);
 			tp_file = normalize_path(rb_tracearg_path(tp));
-			tp_file_id = rb_intern(StringValueCStr(tp_file));
 			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
 
-			if (ptr->prev_file_id == tp_file_id && ptr->prev_line == tp_line)
+			if (ptr->prev_line == tp_line && strcmp(ptr->prev_file, StringValueCStr(tp_file)) == 0)
 			{
 				return;
 			}
@@ -135,7 +133,7 @@ process_line_event(VALUE tracepoint, void *data)
 					process_line_event(tracepoint, data);
 				}
 			}
-			ptr->prev_file_id = tp_file_id;
+			thread_reference_set_prev_file(ptr, StringValueCStr(tp_file));
 			ptr->prev_line = tp_line;
 		}
 	}
