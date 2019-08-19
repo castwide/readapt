@@ -1,5 +1,6 @@
 # 0.4.0 - August 19. 2019
 - Breakpoints use C implementation of hash tables
+- Simplified entry point detection
 
 # 0.3.5 - August 16, 2019
 - Variables message checks for null frames
