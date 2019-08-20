@@ -2,6 +2,6 @@
 #define NORMALIZE_H_
 
 void initialize_normalize(VALUE);
-VALUE normalize_path(VALUE);
+char *normalize_path_new_cstr(char *str);
 
 #endif

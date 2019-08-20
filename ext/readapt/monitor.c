@@ -16,7 +16,7 @@ static VALUE tpThreadBegin;
 static VALUE tpThreadEnd;
 static VALUE debugProc;
 static int firstLineEvent = 0;
-static VALUE entryFile;
+static char *entryFile;
 
 static ID id_continue;
 static ID id_pause;
@@ -74,7 +74,8 @@ monitor_debug(VALUE file, long line, VALUE tracepoint, thread_reference_t *ptr, 
 static void
 process_line_event(VALUE tracepoint, void *data)
 {
-	VALUE ref, tp_file;
+	VALUE ref, tmp;
+	char *tp_file;
 	long tp_line;
 	thread_reference_t *ptr;
 	rb_trace_arg_t *tp;
@@ -93,13 +94,14 @@ process_line_event(VALUE tracepoint, void *data)
 				return;
 			}
 			tp = rb_tracearg_from_tracepoint(tracepoint);
-			tp_file = normalize_path(rb_tracearg_path(tp));
+			tmp = rb_tracearg_path(tp);
+			tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
 			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
 
 			dapEvent = id_continue;
 			if (!firstLineEvent)
 			{
-				if (rb_str_equal(tp_file, entryFile))
+				if (strcmp(tp_file, entryFile) == 0)
 				{
 					firstLineEvent = 1;
 					ptr->control = rb_intern("entry");
@@ -114,7 +116,7 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				dapEvent = rb_intern("step");
 			}
-			else if (breakpoints_match(StringValueCStr(tp_file), tp_line))
+			else if (breakpoints_match(tp_file, tp_line))
 			{
 				dapEvent = rb_intern("breakpoint");
 			}
@@ -127,6 +129,8 @@ process_line_event(VALUE tracepoint, void *data)
 			{
 				monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 			}
+
+			free(tp_file);
 		}
 	}
 }
@@ -220,7 +224,16 @@ monitor_enable_s(VALUE self, VALUE file)
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
 
-	entryFile = file;
+	if (file == Qnil)
+	{
+		entryFile = NULL;
+	}
+	else
+	{
+		entryFile = malloc(sizeof(char) * (strlen(StringValueCStr(file)) + 1));
+		strcpy(entryFile, StringValueCStr(file));
+	}
+
 	firstLineEvent = (entryFile == Qnil ? 1 : 0);
 
 	ref = thread_add_reference(rb_thread_current());
@@ -253,6 +266,9 @@ monitor_disable_s(VALUE self)
 	rb_tracepoint_disable(tpReturn);
 	rb_tracepoint_disable(tpThreadBegin);
 	rb_tracepoint_disable(tpThreadEnd);
+
+	free(entryFile);
+	entryFile = NULL;
 
 	return previous;
 }
@@ -301,5 +317,4 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_global_variable(&tpReturn);
 	rb_global_variable(&tpThreadBegin);
 	rb_global_variable(&tpThreadEnd);
-	rb_global_variable(&entryFile);
 }

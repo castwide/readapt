@@ -14,17 +14,15 @@ checkIfWindows()
     return result == Qnil ? 0 : 1;
 }
 
-VALUE
-normalize_path(VALUE str)
+char *normalize_path_new_cstr(char *str)
 {
-    VALUE result;
     char *buffer;
     long i, len;
 
+    buffer = malloc((rb_str_strlen(str) + 1) * sizeof(char));
+    strcpy(buffer, str);
     if (isWindows)
     {
-        buffer = malloc((rb_str_strlen(str) + 1) * sizeof(char));
-        strcpy(buffer, StringValueCStr(str));
         buffer[0] = toupper(buffer[0]);
         len = strlen(buffer);
         for (i = 2; i < len; i++)
@@ -34,17 +32,17 @@ normalize_path(VALUE str)
                 buffer[i] = '/';
             }
         }
-        result = rb_str_new_cstr(buffer);
-        free(buffer);
-        return result;
     }
-    return str;
+    return buffer;
 }
 
 static VALUE
 normalize_path_s(VALUE self, VALUE str)
 {
-    return normalize_path(str);
+    char *path = normalize_path_new_cstr(StringValueCStr(str));
+    VALUE result = rb_str_new_cstr(path);
+    free(path);
+    return result;
 }
 
 void initialize_normalize(VALUE m_Readapt)
