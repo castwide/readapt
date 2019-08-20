@@ -1,3 +1,8 @@
+# 0.5.0 = August 20, 2019
+- Monitor stores paths as C strings
+- Fixed malloc size for normalized paths
+- Fixed table insertion before existing items
+
 # 0.4.0 - August 19. 2019
 - Breakpoints use C implementation of hash tables
 - Simplified entry point detection

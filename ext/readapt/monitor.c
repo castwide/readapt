@@ -44,7 +44,7 @@ static int match_step(thread_reference_t *ptr)
 }
 
 static ID
-monitor_debug(char *file, long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
+monitor_debug(const char *file, const long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
 	VALUE bind, bid, snapshot, result;
 
