@@ -44,7 +44,7 @@ static int match_step(thread_reference_t *ptr)
 }
 
 static ID
-monitor_debug(VALUE file, long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
+monitor_debug(char *file, long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
 	VALUE bind, bid, snapshot, result;
 
@@ -53,7 +53,7 @@ monitor_debug(VALUE file, long line, VALUE tracepoint, thread_reference_t *ptr, 
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 7,
 		LONG2NUM(ptr->id),
 		bid,
-		file,
+		rb_str_new_cstr(file),
 		INT2NUM(line),
 		Qnil,
 		ID2SYM(event),
@@ -166,7 +166,7 @@ process_return_event(VALUE tracepoint, void *data)
 static void
 process_thread_begin_event(VALUE tracepoint, void *data)
 {
-	VALUE list, here, prev, ref;
+	VALUE list, here, prev, ref, tmp;
 	thread_reference_t *ptr;
 
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
@@ -182,8 +182,9 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 				{
 					ref = thread_add_reference(here);
 					ptr = thread_reference_pointer(ref);
+					tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
 					monitor_debug(
-						rb_funcall(tracepoint, rb_intern("path"), 0),
+						StringValueCStr(tmp),
 						NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
 						tracepoint,
 						ptr,
@@ -198,7 +199,7 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 static void
 process_thread_end_event(VALUE tracepoint, void *data)
 {
-	VALUE thr, ref;
+	VALUE thr, ref, tmp;
 	thread_reference_t *ptr;
 
 	thr = rb_thread_current();
@@ -206,7 +207,8 @@ process_thread_end_event(VALUE tracepoint, void *data)
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		monitor_debug(rb_funcall(tracepoint, rb_intern("path"), 0), NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)), tracepoint, ptr, rb_intern("thread_end"));
+		tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
+		monitor_debug(StringValueCStr(tmp), NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)), tracepoint, ptr, rb_intern("thread_end"));
 		thread_delete_reference(thr);
 	}
 }
@@ -238,7 +240,7 @@ monitor_enable_s(VALUE self, VALUE file)
 	ref = thread_add_reference(rb_thread_current());
 	ptr = thread_reference_pointer(ref);
 	monitor_debug(
-		Qnil,
+		"",
 		0,
 		Qnil,
 		ptr,
