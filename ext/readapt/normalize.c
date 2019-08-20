@@ -19,7 +19,7 @@ char *normalize_path_new_cstr(char *str)
     char *buffer;
     long i, len;
 
-    buffer = malloc((rb_str_strlen(str) + 1) * sizeof(char));
+    buffer = malloc((strlen(str) + 1) * sizeof(char));
     strcpy(buffer, str);
     if (isWindows)
     {
