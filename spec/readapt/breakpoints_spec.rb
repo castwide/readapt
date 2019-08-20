@@ -30,4 +30,11 @@ RSpec.describe Readapt::Breakpoints do
     expect(Readapt::Breakpoints.match('test3.rb', 3)).to be(true)
     expect(Readapt::Breakpoints.match('test3.rb', 1)).to be(false)
   end
+
+  it 'inserts before other files' do
+    Readapt::Breakpoints.set 'test2.rb', [2]
+    Readapt::Breakpoints.set 'test1.rb', [1]
+    expect(Readapt::Breakpoints.match('test2.rb', 2)).to be(true)
+    expect(Readapt::Breakpoints.match('test1.rb', 1)).to be(true)
+  end
 end

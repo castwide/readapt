@@ -158,33 +158,29 @@ static void ht_insert_key(ht_hash_table *ht, char *key, const long *value, const
     item = ht_new_item(key, value, size);
     tmp = malloc(sizeof(ht_item) * (ht->size + 1));
 
-    for (i = 0; i <= ht->size; i++)
+    for (i = 0; i < ht->size; i++)
     {
         if (!inserted)
         {
-            if (i == ht->size)
+            cmp = strcmp(item->key, ht->items[i]->key);
+            if (cmp > 0)
             {
-                tmp[i] = item;
+                tmp[cursor] = item;
+                cursor++;
                 inserted = 1;
             }
-            else
-            {
-                cmp = strcmp(item->key, ht->items[i]->key);
-                if (cmp > 0)
-                {
-                    tmp[i] = item;
-                    tmp[i + 1] = ht->items[cursor];
-                    inserted = 1;
-                    cursor++;
-                    i++;
-                }
-            }
+            tmp[cursor] = ht->items[i];
+            cursor++;
         }
         else
         {
-            tmp[i] = ht->items[cursor];
+            tmp[cursor] = ht->items[i];
             cursor++;
         }
+    }
+    if (!inserted)
+    {
+        tmp[ht->size] = item;
     }
     free(ht->items);
     ht->items = tmp;
