@@ -227,14 +227,13 @@ monitor_enable_s(VALUE self, VALUE file)
 	if (file == Qnil)
 	{
 		entryFile = NULL;
+		firstLineEvent = 1;
 	}
 	else
 	{
-		entryFile = malloc(sizeof(char) * (strlen(StringValueCStr(file)) + 1));
-		strcpy(entryFile, StringValueCStr(file));
+		entryFile = normalize_path_new_cstr(StringValueCStr(file));
+		firstLineEvent = 0;
 	}
-
-	firstLineEvent = (entryFile == Qnil ? 1 : 0);
 
 	ref = thread_add_reference(rb_thread_current());
 	ptr = thread_reference_pointer(ref);
