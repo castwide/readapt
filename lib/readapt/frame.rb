@@ -9,6 +9,12 @@ module Readapt
       @binding = ObjectSpace._id2ref(binding_id)
     end
 
+    def evaluate code
+      @binding.eval(code).to_s
+    rescue StandardError => e
+      e.message
+    end
+
     def local_id
       @binding.object_id
     end
