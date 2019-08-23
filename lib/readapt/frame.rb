@@ -10,9 +10,9 @@ module Readapt
     end
 
     def evaluate code
-      @binding.eval(code).to_s
-    rescue StandardError => e
-      e.message
+      @binding.eval(code).inspect
+    rescue Exception => e
+      "[#{e.class}] #{e.message}"
     end
 
     def local_id
@@ -63,10 +63,6 @@ module Readapt
 
     def global sym
       global sym
-    end
-
-    def evaluate code
-      @binding.eval code
     end
 
     NULL_FRAME = Frame.new(nil, nil.object_id)
