@@ -1,4 +1,7 @@
-# 0.5.0 = August 20, 2019
+# 0.6.0 - August 26, 2019
+- Evaluate in REPL
+
+# 0.5.0 - August 20, 2019
 - Monitor stores paths as C strings
 - Fixed malloc size for normalized paths
 - Fixed table insertion before existing items
