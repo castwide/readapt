@@ -174,23 +174,21 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 	if (here != Qnil)
 	{
 		prev = rb_ary_pop(list);
+		if (prev != Qnil)
 		{
-			if (prev != Qnil)
+			ref = thread_reference(prev);
+			if (ref != Qnil)
 			{
-				ref = thread_reference(prev);
-				if (ref != Qnil)
-				{
-					ref = thread_add_reference(here);
-					ptr = thread_reference_pointer(ref);
-					tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
-					monitor_debug(
-						StringValueCStr(tmp),
-						NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
-						tracepoint,
-						ptr,
-						rb_intern("thread_begin")
-					);
-				}
+				ref = thread_add_reference(here);
+				ptr = thread_reference_pointer(ref);
+				tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
+				monitor_debug(
+					StringValueCStr(tmp),
+					NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
+					tracepoint,
+					ptr,
+					rb_intern("thread_begin")
+				);
 			}
 		}
 	}
