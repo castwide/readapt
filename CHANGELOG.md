@@ -1,3 +1,6 @@
+# 0.6.1 - September 7, 2019
+- Ignore nilable paths in thread events
+
 # 0.6.0 - August 26, 2019
 - Evaluate in REPL
 

@@ -166,7 +166,7 @@ process_return_event(VALUE tracepoint, void *data)
 static void
 process_thread_begin_event(VALUE tracepoint, void *data)
 {
-	VALUE list, here, prev, ref, tmp;
+	VALUE list, here, prev, ref;
 	thread_reference_t *ptr;
 
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);
@@ -181,10 +181,9 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 			{
 				ref = thread_add_reference(here);
 				ptr = thread_reference_pointer(ref);
-				tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
 				monitor_debug(
-					StringValueCStr(tmp),
-					NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)),
+					"",
+					0,
 					tracepoint,
 					ptr,
 					rb_intern("thread_begin")
@@ -197,7 +196,7 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 static void
 process_thread_end_event(VALUE tracepoint, void *data)
 {
-	VALUE thr, ref, tmp;
+	VALUE thr, ref;
 	thread_reference_t *ptr;
 
 	thr = rb_thread_current();
@@ -205,8 +204,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		tmp = rb_funcall(tracepoint, rb_intern("path"), 0);
-		monitor_debug(StringValueCStr(tmp), NUM2LONG(rb_funcall(tracepoint, rb_intern("lineno"), 0)), tracepoint, ptr, rb_intern("thread_end"));
+		monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
 		thread_delete_reference(thr);
 	}
 }
