@@ -105,16 +105,16 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      if (snapshot.event == :thread_begin)
-        thr = Thread.new(snapshot.thread_id)
+      if snapshot.event == :thread_begin || snapshot.event == :entry
+        @threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id)
+        thr = @threads[snapshot.thread_id]
         thr.control = :continue
-        @threads[snapshot.thread_id] = thr
         send_event('thread', {
           reason: 'started',
           threadId: snapshot.thread_id
         }, true)
         snapshot.control = :continue
-      elsif (snapshot.event == :thread_end)
+      elsif snapshot.event == :thread_end
         thr = thread(snapshot.thread_id)
         thr.control = :continue
         @threads.delete snapshot.thread_id
@@ -123,8 +123,8 @@ module Readapt
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
-      elsif snapshot.event == :entry
-        snapshot.control = :continue
+      # elsif snapshot.event == :entry
+      #   snapshot.control = :continue
       else
         changed
         thread = self.thread(snapshot.thread_id)

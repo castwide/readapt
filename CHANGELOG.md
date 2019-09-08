@@ -1,3 +1,6 @@
+# 0.6.2 - September 9, 2019
+- Monitor processes all new threads
+
 # 0.6.1 - September 7, 2019
 - Ignore nilable paths in thread events
 

@@ -86,52 +86,49 @@ process_line_event(VALUE tracepoint, void *data)
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		if (ptr->depth > 0)
+		threadPaused = (ptr->control == id_pause);
+		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
 		{
-			threadPaused = (ptr->control == id_pause);
-			if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
-			{
-				return;
-			}
-			tp = rb_tracearg_from_tracepoint(tracepoint);
-			tmp = rb_tracearg_path(tp);
-			tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
-			tp_line = NUM2LONG(rb_tracearg_lineno(tp));
-
-			dapEvent = id_continue;
-			if (!firstLineEvent)
-			{
-				if (strcmp(tp_file, entryFile) == 0)
-				{
-					firstLineEvent = 1;
-					ptr->control = rb_intern("entry");
-					process_line_event(tracepoint, data);
-				}
-			}
-			else if (threadPaused)
-			{
-				dapEvent = id_pause;
-			}
-			else if (match_step(ptr))
-			{
-				dapEvent = rb_intern("step");
-			}
-			else if (breakpoints_match(tp_file, tp_line))
-			{
-				dapEvent = rb_intern("breakpoint");
-			}
-			else if (ptr->control == id_entry)
-			{
-				dapEvent = id_entry;
-			}
-
-			if (dapEvent != id_continue)
-			{
-				monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
-			}
-
-			free(tp_file);
+			return;
 		}
+		tp = rb_tracearg_from_tracepoint(tracepoint);
+		tmp = rb_tracearg_path(tp);
+		tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
+		tp_line = NUM2LONG(rb_tracearg_lineno(tp));
+
+		dapEvent = id_continue;
+		if (!firstLineEvent)
+		{
+			if (strcmp(tp_file, entryFile) == 0)
+			{
+				firstLineEvent = 1;
+				ptr->control = rb_intern("entry");
+				process_line_event(tracepoint, data);
+			}
+		}
+		else if (threadPaused)
+		{
+			dapEvent = id_pause;
+		}
+		else if (match_step(ptr))
+		{
+			dapEvent = rb_intern("step");
+		}
+		else if (breakpoints_match(tp_file, tp_line))
+		{
+			dapEvent = rb_intern("breakpoint");
+		}
+		else if (ptr->control == id_entry)
+		{
+			dapEvent = id_entry;
+		}
+
+		if (dapEvent != id_continue)
+		{
+			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
+		}
+
+		free(tp_file);
 	}
 }
 
@@ -173,23 +170,15 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 	here = rb_ary_pop(list);
 	if (here != Qnil)
 	{
-		prev = rb_ary_pop(list);
-		if (prev != Qnil)
-		{
-			ref = thread_reference(prev);
-			if (ref != Qnil)
-			{
-				ref = thread_add_reference(here);
-				ptr = thread_reference_pointer(ref);
-				monitor_debug(
-					"",
-					0,
-					tracepoint,
-					ptr,
-					rb_intern("thread_begin")
-				);
-			}
-		}
+		ref = thread_add_reference(here);
+		ptr = thread_reference_pointer(ref);
+		monitor_debug(
+			"",
+			0,
+			tracepoint,
+			ptr,
+			rb_intern("thread_begin")
+		);
 	}
 }
 
