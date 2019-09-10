@@ -28,18 +28,6 @@ module Readapt
         Readapt::Adapter.host debugger
         machine.prepare Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Adapter)
         STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
-        # Redirect STDOUT and STDERR through the adapter protocol
-        # @todo This feature does not always work with STDERR, e.g, when
-        #   running RSpec
-        cats = ['stdout', 'stderr']
-        [STDOUT, STDERR].each do |io|
-          cat = cats.shift
-          io.instance_eval do
-            define_singleton_method :write do |*args, &block|
-              debugger.output args.join, cat
-            end
-          end
-        end
       end
     end
   end
