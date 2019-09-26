@@ -100,6 +100,12 @@ module Readapt
       @breakpoints["#{source}:#{line}"] = Breakpoint.new(source, line, condition)
     end
 
+    def clear_breakpoints source
+      @breakpoints.delete_if { |key, value|
+        value.source == source
+      }
+    end
+
     def disconnect
       shutdown if launched?
       @request = nil
@@ -136,10 +142,13 @@ module Readapt
       #   snapshot.control = :continue
       else
         if snapshot.event == :breakpoint
+          STDERR.puts @breakpoints.inspect
           bp = get_breakpoint(snapshot.file, snapshot.line)
+          STDERR.puts bp.inspect
           unless bp.condition.nil? || bp.condition.empty?
             # @type [Binding]
             bnd = ObjectSpace._id2ref(snapshot.binding_id)
+            STDERR.puts "Condition: #{bp.condition}"
             return unless bnd.eval(bp.condition)
           end
         end
