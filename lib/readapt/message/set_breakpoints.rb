@@ -7,11 +7,12 @@ module Readapt
         path = Readapt.normalize_path(arguments['source']['path'])
         Breakpoints.set(path, arguments['lines'])
         set_body(
-          breakpoints: arguments['lines'].map do |l|
+          breakpoints: arguments['breakpoints'].map do |val|
+            debugger.set_breakpoint arguments['source'], val['line'], val['condition']
             {
               verified: true, # @todo Verify
               source: arguments['source'],
-              line: l
+              line: val['line']
             }
           end
         )

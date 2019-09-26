@@ -23,6 +23,7 @@ module Readapt
       @config = {}
       @original_argv = ARGV.clone
       @machine = machine
+      @breakpoints = {}
     end
 
     def config arguments, request
@@ -91,6 +92,14 @@ module Readapt
       })
     end
 
+    def get_breakpoint source, line
+      @breakpoints["#{source}:#{line}"] || Breakpoint.new(source, line, nil)
+    end
+
+    def set_breakpoint source, line, condition
+      @breakpoints["#{source}:#{line}"] = Breakpoint.new(source, line, condition)
+    end
+
     def disconnect
       shutdown if launched?
       @request = nil
@@ -126,6 +135,14 @@ module Readapt
       # elsif snapshot.event == :entry
       #   snapshot.control = :continue
       else
+        if snapshot.event == :breakpoint
+          bp = get_breakpoint(snapshot.file, snapshot.line)
+          unless bp.condition.nil? || bp.condition.empty?
+            # @type [Binding]
+            bnd = ObjectSpace._id2ref(snapshot.binding_id)
+            return unless bnd.eval(bp.condition)
+          end
+        end
         changed
         thread = self.thread(snapshot.thread_id)
         thread.control = :pause
