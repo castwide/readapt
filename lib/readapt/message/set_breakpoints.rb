@@ -6,10 +6,11 @@ module Readapt
       def run
         path = Readapt.normalize_path(arguments['source']['path'])
         debugger.clear_breakpoints path
-        Breakpoints.set(path, arguments['lines'])
+        lines = []
         set_body(
           breakpoints: arguments['breakpoints'].map do |val|
             debugger.set_breakpoint path, val['line'], val['condition']
+            lines.push val['line']
             {
               verified: true, # @todo Verify
               source: arguments['source'],
@@ -17,6 +18,7 @@ module Readapt
             }
           end
         )
+        Breakpoints.set(path, lines)
       end
     end
   end
