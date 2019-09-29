@@ -142,14 +142,22 @@ module Readapt
       #   snapshot.control = :continue
       else
         if snapshot.event == :breakpoint
-          STDERR.puts @breakpoints.inspect
           bp = get_breakpoint(snapshot.file, snapshot.line)
-          STDERR.puts bp.inspect
           unless bp.condition.nil? || bp.condition.empty?
             # @type [Binding]
             bnd = ObjectSpace._id2ref(snapshot.binding_id)
-            STDERR.puts "Condition: #{bp.condition}"
-            return unless bnd.eval(bp.condition)
+            begin
+              unless bnd.eval(bp.condition)
+                snapshot.control = :continue
+                return
+              end
+            rescue Exception => e
+              STDERR.puts "Breakpoint condition raised an error"
+              STDERR.puts "#{snapshot.file}:#{snapshot.line} - `#{bp.condition}`"
+              STDERR.puts "[#{e.class}] #{e.message}"
+              snapshot.control = :continue
+              return
+            end
           end
         end
         changed

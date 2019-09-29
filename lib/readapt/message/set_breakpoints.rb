@@ -4,7 +4,6 @@ module Readapt
   module Message
     class SetBreakpoints < Base
       def run
-        STDERR.puts arguments.inspect
         path = Readapt.normalize_path(arguments['source']['path'])
         debugger.clear_breakpoints path
         Breakpoints.set(path, arguments['lines'])
