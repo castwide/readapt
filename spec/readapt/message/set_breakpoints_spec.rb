@@ -5,7 +5,11 @@ RSpec.describe Readapt::Message::SetBreakpoints do
       'source' => {
         'path' => 'test.rb'
       },
-      'lines' => [1]
+      'breakpoints' => [
+        {
+          'line' => 1
+        }
+      ]
     }, debugger)
     message.run
     expect(message.body[:breakpoints]).not_to be_nil
