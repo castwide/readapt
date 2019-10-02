@@ -19,16 +19,25 @@ module Readapt
       machine = Backport::Machine.new
       machine.run do
         Signal.trap("INT") do
-          Backport.stop
+          graceful_shutdown
         end
         Signal.trap("TERM") do
-          Backport.stop
+          graceful_shutdown
         end
         debugger = Readapt::Debugger.new(machine)
         Readapt::Adapter.host debugger
         machine.prepare Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Adapter)
         STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
       end
+    end
+
+    private
+
+    def graceful_shutdown
+      say "\nStopping server..."
+      Backport.stop
+      say 'Server stopped.'
+      exit
     end
   end
 end
