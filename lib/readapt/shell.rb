@@ -34,9 +34,7 @@ module Readapt
     private
 
     def graceful_shutdown
-      say "\nStopping server..."
       Backport.stop
-      say 'Server stopped.'
       exit
     end
   end
