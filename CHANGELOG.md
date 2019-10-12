@@ -1,5 +1,6 @@
-# 0.7.0 - October 1, 2019
+# 0.7.0 - October 12, 2019
 - Conditional breakpoints
+- Graceful shutdown (#2)
 
 # 0.6.2 - September 10, 2019
 - Monitor processes all new threads

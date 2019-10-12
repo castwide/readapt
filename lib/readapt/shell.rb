@@ -1,6 +1,4 @@
 require 'thor'
-require 'socket'
-require 'stringio'
 require 'backport'
 
 module Readapt
