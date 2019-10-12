@@ -5,16 +5,20 @@ module Readapt
     class SetBreakpoints < Base
       def run
         path = Readapt.normalize_path(arguments['source']['path'])
-        Breakpoints.set(path, arguments['lines'])
+        debugger.clear_breakpoints path
+        lines = []
         set_body(
-          breakpoints: arguments['lines'].map do |l|
+          breakpoints: arguments['breakpoints'].map do |val|
+            debugger.set_breakpoint path, val['line'], val['condition']
+            lines.push val['line']
             {
               verified: true, # @todo Verify
               source: arguments['source'],
-              line: l
+              line: val['line']
             }
           end
         )
+        Breakpoints.set(path, lines)
       end
     end
   end

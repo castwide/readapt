@@ -1,3 +1,6 @@
+# 0.7.0 - October 1, 2019
+- Conditional breakpoints
+
 # 0.6.2 - September 10, 2019
 - Monitor processes all new threads
 - Discard buggy output redirection

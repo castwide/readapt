@@ -1,6 +1,7 @@
 require 'backport'
 
 require 'readapt/version'
+require 'readapt/breakpoint'
 require 'readapt/location'
 require 'readapt/thread'
 require 'readapt/frame'
