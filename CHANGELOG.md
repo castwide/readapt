@@ -1,3 +1,6 @@
+# 0.7.1 - October 13, 2019
+- Debugger sets program name
+
 # 0.7.0 - October 12, 2019
 - Conditional breakpoints
 - Graceful shutdown (#2)
