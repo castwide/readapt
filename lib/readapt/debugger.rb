@@ -22,6 +22,7 @@ module Readapt
       @request = nil
       @config = {}
       @original_argv = ARGV.clone
+      @original_prog = $0
       @machine = machine
       @breakpoints = {}
     end
@@ -178,11 +179,13 @@ module Readapt
     end
 
     def set_program_args
+      $0 = file
       ARGV.clear
       ARGV.replace(@config['programArgs'] || [])
     end
 
     def set_original_args
+      $0 = @original_prog
       ARGV.clear
       ARGV.replace @original_argv
     end
