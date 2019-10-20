@@ -1,3 +1,6 @@
+# 0.7.2
+- Flush output on disconnect
+
 # 0.7.1 - October 13, 2019
 - Debugger sets program name
 
