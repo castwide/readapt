@@ -74,7 +74,7 @@ module Readapt
       end
       yield if block_given?
     rescue StandardError => e
-      STDERR.puts e.message
+      STDERR.puts "[#{e.class}] #{e.message}"
       STDERR.puts e.backtrace.join("\n")
     rescue SystemExit
       # Ignore
