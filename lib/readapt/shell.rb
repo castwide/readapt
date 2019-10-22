@@ -14,6 +14,8 @@ module Readapt
     option :host, type: :string, aliases: :h, description: 'The server host', default: '127.0.0.1'
     option :port, type: :numeric, aliases: :p, description: 'The server port', default: 1234
     def serve
+      STDOUT.sync = true
+      STDERR.sync = true
       machine = Backport::Machine.new
       machine.run do
         Signal.trap("INT") do

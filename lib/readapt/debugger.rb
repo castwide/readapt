@@ -82,6 +82,8 @@ module Readapt
       Monitor.stop
       @running = false
       set_original_args
+      STDOUT.flush
+      STDERR.flush
       changed
       send_event 'terminated', nil
     end

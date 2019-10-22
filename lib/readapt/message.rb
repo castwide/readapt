@@ -32,10 +32,6 @@ module Readapt
       message = @@messages[arguments['command']].new(arguments['arguments'], debugger)
       message.run
       message
-    rescue Exception => e
-      STDERR.puts "Skipping error: #{e.message}"
-      STDERR.puts "Received: #{arguments}"
-      STDERR.puts e.backtrace
     end
 
     register 'initialize', Message::Initialize

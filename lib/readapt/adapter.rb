@@ -69,9 +69,9 @@ module Readapt
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
         write envelope
       end
-    rescue Exception => e
-      STDERR.puts e.message
-      STDERR.puts e.backtrace
+    rescue RuntimeError => e
+      STDERR.puts "[#{e.class}] #{e.message}"
+      STDERR.puts e.backtrace.join
     end
   end
 

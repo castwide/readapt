@@ -4,7 +4,6 @@ module Readapt
   module Message
     class Disconnect < Base
       def run
-        STDOUT.flush
         # HACK: Wait a moment to make sure the output is flushed
         # @todo Find a better way
         sleep 1
