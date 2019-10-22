@@ -29,9 +29,15 @@ module Readapt
     end
 
     def self.process arguments, debugger
-      message = @@messages[arguments['command']].new(arguments['arguments'], debugger)
-      message.run
-      message
+      klass = @@messages[arguments['command']]
+      if klass.nil?
+        STDERR.puts "Debugger received unrecognized command `#{arguments['command']}`"
+        Message::Base.new(arguments, debugger)
+      else
+        message = klass.new(arguments['arguments'], debugger)
+        message.run
+        message
+      end
     end
 
     register 'initialize', Message::Initialize
