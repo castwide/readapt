@@ -75,8 +75,7 @@ VALUE thread_add_reference(VALUE thr)
 
 VALUE thread_delete_reference(VALUE thr)
 {
-	rb_hash_delete(threads, thr);
-	return Qnil;
+	return rb_hash_delete(threads, rb_obj_id(thr));
 }
 
 void thread_pause()
