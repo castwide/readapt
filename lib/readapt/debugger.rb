@@ -36,12 +36,10 @@ module Readapt
 
     # @return [Readapt::Thread]
     def thread id
-      # @threads[id] || Thread::NULL_THREAD
       Thread.find(id)
     end
 
     def threads
-      # @threads.values
       Thread.all
     end
 
@@ -125,8 +123,6 @@ module Readapt
     # return [void]
     def debug snapshot
       if snapshot.event == :thread_begin || snapshot.event == :entry
-        # @threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id)
-        # thr = @threads[snapshot.thread_id]
         thr = Thread.find(snapshot.thread_id)
         thr.control = :continue
         send_event('thread', {
@@ -143,8 +139,6 @@ module Readapt
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
-      # elsif snapshot.event == :entry
-      #   snapshot.control = :continue
       else
         if snapshot.event == :breakpoint
           bp = get_breakpoint(snapshot.file, snapshot.line)
