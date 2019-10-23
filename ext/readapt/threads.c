@@ -142,7 +142,7 @@ VALUE thread_reference_pop_frame(VALUE ref)
 	return rb_ary_shift(frm_ary);
 }
 
-void thread_reset()
+void thread_clear()
 {
 	rb_funcall(threads, rb_intern("clear"), 0);
 }

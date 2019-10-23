@@ -21,6 +21,6 @@ VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint);
 VALUE thread_reference_pop_frame(VALUE ref);
 thread_reference_t *thread_reference_pointer(VALUE);
 void thread_pause();
-void thread_reset();
+void thread_clear();
 
 #endif

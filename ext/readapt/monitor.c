@@ -254,6 +254,7 @@ monitor_disable_s(VALUE self)
 
 	free(entryFile);
 	entryFile = NULL;
+	thread_clear();
 
 	return previous;
 }
