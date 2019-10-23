@@ -107,7 +107,6 @@ VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 	frame = rb_ary_entry(frm_ary, 0);
 	if (frame == Qnil)
 	{
-		return thread_reference_push_frame(ref, tracepoint);
 		frame = frame_new_from_tracepoint(tracepoint);
 		rb_ary_unshift(frm_ary, frame);
 	}
@@ -132,7 +131,8 @@ void thread_reset()
 
 VALUE thread_allocate_s(VALUE self)
 {
-    frame_t *data = malloc(sizeof(frame_t));
+	VALUE obj;
+	frame_t *data = malloc(sizeof(frame_t));
     return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
 

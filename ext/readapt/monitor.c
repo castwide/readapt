@@ -164,7 +164,7 @@ process_return_event(VALUE tracepoint, void *data)
 static void
 process_thread_begin_event(VALUE tracepoint, void *data)
 {
-	VALUE list, here, prev, ref;
+	VALUE list, here, ref;
 	thread_reference_t *ptr;
 
 	list = rb_funcall(rb_cThread, rb_intern("list"), 0);

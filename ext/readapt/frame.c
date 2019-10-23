@@ -31,8 +31,14 @@ static const rb_data_type_t frame_type = {
 
 VALUE frame_allocate_s(VALUE self)
 {
+    VALUE obj;
     frame_t *data = malloc(sizeof(frame_t));
-    return TypedData_Wrap_Struct(self, &frame_type, data);
+    obj = TypedData_Wrap_Struct(self, &frame_type, data);
+    data->file = NULL;
+    data->line = 0;
+    data->method_id = rb_intern("");
+    data->binding_id = 0;
+    return obj;
 }
 
 VALUE frame_allocate()
@@ -61,7 +67,7 @@ static char* copy_string(VALUE string)
 
 VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
 {
-	VALUE tmp;
+	VALUE tmp, bnd;
 	rb_trace_arg_t *tracearg;
     frame_t *data;
     char *file;
@@ -69,19 +75,20 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
 	ID method_id;
 	long binding_id;
 
+    tracearg = rb_tracearg_from_tracepoint(tracepoint);
     tmp = rb_tracearg_path(tracearg);
     file = copy_string(tmp);
     line = NUM2INT(rb_tracearg_lineno(tracearg));
 	method_id = rb_intern("placeholder"); // TODO Get the real one
-	tmp = rb_tracearg_binding(tracearg);
-	binding_id = NUM2LONG(tmp);
+	bnd = rb_tracearg_binding(tracearg);
+	binding_id = NUM2LONG(rb_obj_id(bnd));
 
     TypedData_Get_Struct(frame, frame_t, &frame_type, data);
     free(data->file);
     data->file = file;
     data->line = INT2NUM(line);
-    data->method_id = rb_intern("placeholder"); // TODO Real value
-    data->binding_id = NUM2LONG(binding_id);
+    data->method_id = method_id;
+    data->binding_id = NUM2LONG(rb_obj_id(binding_id));
 
     return frame;
 }
