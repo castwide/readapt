@@ -14,7 +14,7 @@ RSpec.describe Readapt::Message::Variables do
       local_variable = 'string'
       send(:binding)
     }.call
-    @frame = Readapt::Frame.new(nil, bind.object_id)
+    @frame = Readapt::Frame.new(nil, 0, nil, bind.object_id)
     arguments = {
       'variablesReference' => bind.object_id
     }
