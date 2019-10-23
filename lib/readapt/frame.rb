@@ -18,7 +18,7 @@ module Readapt
     end
 
     def location
-      @location ||= Location.new(file, line)
+      Location.new(file, line)
     end
 
     def local_id

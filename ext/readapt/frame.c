@@ -87,12 +87,12 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
 	bnd = rb_tracearg_binding(tracearg);
 	binding_id = NUM2LONG(rb_obj_id(bnd));
 
-    // TypedData_Get_Struct(frame, frame_t, &frame_type, data);
-    // free(data->file);
-    // data->file = file;
-    // data->line = line;
-    // data->method_id = method_id;
-    // data->binding_id = NUM2LONG(rb_obj_id(binding_id));
+    TypedData_Get_Struct(frame, frame_t, &frame_type, data);
+    free(data->file);
+    data->file = file;
+    data->line = line;
+    data->method_id = method_id;
+    data->binding_id = NUM2LONG(rb_obj_id(binding_id));
 
     return frame;
 }
@@ -111,11 +111,14 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VA
 VALUE frame_file(VALUE self)
 {
     frame_t *data;
-    VALUE str;
+    VALUE str = Qnil;
 
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    str = rb_str_new_cstr(data->file);
-    rb_obj_freeze(str);
+    if (data->file)
+    {
+        str = rb_str_new_cstr(data->file);
+        rb_obj_freeze(str);
+    }
     return str;
 }
 
