@@ -47,6 +47,6 @@ module Readapt
       @binding.local_variable_get sym
     end
 
-    NULL_FRAME = Frame.new(nil, nil.object_id)
+    NULL_FRAME = Frame.new("(nil)", 0, 0, nil.object_id)
   end
 end

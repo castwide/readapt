@@ -35,6 +35,11 @@ VALUE frame_allocate_s(VALUE self)
     return TypedData_Wrap_Struct(self, &frame_type, data);
 }
 
+VALUE frame_allocate()
+{
+    return frame_allocate_s(c_Frame);
+}
+
 VALUE frame_new_from_tracepoint(VALUE tracepoint)
 {
     VALUE frm;
@@ -81,12 +86,7 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
     return frame;
 }
 
-VALUE frame_allocate()
-{
-    return frame_allocate_s(c_Frame);
-}
-
-VALUE frame_initialize(VALUE self, VALUE file, VALUE line, VALUE method_id, VALUE binding_id)
+VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VALUE binding_id)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
@@ -133,7 +133,7 @@ void initialize_frame(VALUE m_Readapt)
 {
     c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cData);
     rb_define_alloc_func(c_Frame, frame_allocate_s);
-    rb_define_method(c_Frame, "initialize", frame_initialize, 4);
+    rb_define_method(c_Frame, "initialize", frame_initialize_m, 4);
     rb_define_method(c_Frame, "file", frame_file, 0);
     rb_define_method(c_Frame, "line", frame_line, 0);
     rb_define_method(c_Frame, "method_id", frame_method_id, 0);

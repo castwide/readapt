@@ -25,15 +25,6 @@ module Readapt
       @frames ||= []
     end
 
-    class NullThread < Thread
-      def initialize
-        @id = 0
-        @name = 'Null Thread'
-        @frames = [].freeze
-      end
-    end
-    private_constant :NullThread
-
-    NULL_THREAD = NullThread.new
+    NULL_THREAD = Thread.new(nil).freeze
   end
 end

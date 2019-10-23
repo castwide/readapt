@@ -104,7 +104,7 @@ VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 {
 	VALUE frm_ary, frame;
 	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	frame = rb_ary_aref(0, frm_ary, Qnil);
+	frame = rb_ary_entry(frm_ary, 0);
 	if (frame == Qnil)
 	{
 		return thread_reference_push_frame(ref, tracepoint);
@@ -130,9 +130,16 @@ void thread_reset()
 	rb_funcall(threads, rb_intern("clear"), 0);
 }
 
-void initialize_threads(m_Readapt)
+VALUE thread_allocate_s(VALUE self)
+{
+    frame_t *data = malloc(sizeof(frame_t));
+    return TypedData_Wrap_Struct(self, &thread_reference_type, data);
+}
+
+void initialize_threads(VALUE m_Readapt)
 {
 	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cData);
+	rb_define_alloc_func(c_Thread, thread_allocate_s);
 	threads = rb_hash_new();
 	rb_global_variable(&threads);
 }
