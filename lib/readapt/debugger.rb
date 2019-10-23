@@ -168,26 +168,17 @@ module Readapt
         changed
         thread = self.thread(snapshot.thread_id)
         thread.control = :pause
-        # frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
-        # thread.frames.push frame
-        # thread.frames.replace snapshot.frames
-        frame = thread.frames.first
         thread.frames.each do |frm|
           @frames[frm.local_id] = frm
         end
-        # @frames[frame.local_id] = frame
         send_event('stopped', {
           reason: snapshot.event,
-          threadId: ::Thread.current.object_id
+          threadId: thread.id
         })
-        # sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
         sleep 0.01 until thread.control != :pause || !Thread.include?(thread.id)
-        # @frames.delete frame.local_id
         thread.frames.each do |frm|
           @frames.delete frm.local_id
         end
-        # thread.frames.delete frame
-        # thread.frames.clear
         snapshot.control = thread.control
       end
     end

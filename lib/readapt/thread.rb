@@ -9,11 +9,6 @@ module Readapt
     # @return [Symbol]
     attr_accessor :control
 
-    def initialize
-      # @@next_id += 1
-      # @name = "Thread #{@@next_id}"
-    end
-
     def name
       @name ||= begin
         @@next_id += 1
