@@ -1,7 +1,9 @@
 #include "ruby.h"
 #include "ruby/debug.h"
 #include "threads.h"
+#include "frame.h"
 
+static VALUE c_Thread;
 static VALUE threads;
 
 void thread_reference_free(void* data)
@@ -25,16 +27,10 @@ static const rb_data_type_t thread_reference_type = {
 	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
-void initialize_threads()
-{
-	threads = rb_hash_new();
-	rb_global_variable(&threads);
-}
-
 VALUE thread_reference_new(VALUE thr)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
-	VALUE obj = TypedData_Make_Struct(rb_cData, thread_reference_t, &thread_reference_type, data);
+	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
 	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
 	data->depth = 0;
 	data->cursor = 0;
@@ -94,7 +90,49 @@ void thread_pause()
 	}
 }
 
+VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
+{
+	VALUE frm_ary, frame;
+
+	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	frame = frame_new_from_tracepoint(tracepoint);
+	rb_ary_unshift(frm_ary, frame);
+	return frame;
+}
+
+VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
+{
+	VALUE frm_ary, frame;
+	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	frame = rb_ary_aref(0, frm_ary, Qnil);
+	if (frame == Qnil)
+	{
+		return thread_reference_push_frame(ref, tracepoint);
+		frame = frame_new_from_tracepoint(tracepoint);
+		rb_ary_unshift(frm_ary, frame);
+	}
+	else
+	{
+		frame_update_from_tracepoint(frame, tracepoint);
+	}
+	return frame;
+}
+
+VALUE thread_reference_pop_frame(VALUE ref)
+{
+	VALUE frm_ary;
+	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	return rb_ary_shift(frm_ary);
+}
+
 void thread_reset()
 {
 	rb_funcall(threads, rb_intern("clear"), 0);
+}
+
+void initialize_threads(m_Readapt)
+{
+	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cData);
+	threads = rb_hash_new();
+	rb_global_variable(&threads);
 }

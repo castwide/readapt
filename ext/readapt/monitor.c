@@ -125,6 +125,7 @@ process_line_event(VALUE tracepoint, void *data)
 
 		if (dapEvent != id_continue)
 		{
+			thread_reference_update_frame(ref, tracepoint);
 			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
 
@@ -171,6 +172,7 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 	if (here != Qnil)
 	{
 		ref = thread_add_reference(here);
+		thread_reference_push_frame(ref, tracepoint);
 		ptr = thread_reference_pointer(ref);
 		monitor_debug(
 			"",
@@ -196,6 +198,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 		monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
 		thread_delete_reference(thr);
 	}
+	thread_reference_pop_frame(ref);
 }
 
 static VALUE
@@ -280,7 +283,7 @@ void initialize_monitor(VALUE m_Readapt)
 	m_Monitor = rb_define_module_under(m_Readapt, "Monitor");
 	c_Snapshot = rb_define_class_under(m_Readapt, "Snapshot", rb_cObject);
 
-	initialize_threads();
+	initialize_threads(m_Readapt);
 
 	rb_define_singleton_method(m_Monitor, "start", monitor_enable_s, 1);
 	rb_define_singleton_method(m_Monitor, "stop", monitor_disable_s, 0);

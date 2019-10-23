@@ -1,18 +1,28 @@
 # frozen_string_literal: true
 
 module Readapt
+  # @!method file
+  #   @return [String]
+  # @!method line
+  #   @return [Integer]
+  # @!method method_id
+  #   @return [Symbol]
+  # @!method binding_id
+  #   @return [Integer]
+  # @!method initialize(file, line, method_id, binding_id)
   class Frame
-    attr_reader :location
-
-    def initialize location, binding_id
-      @location = location
-      @binding = ObjectSpace._id2ref(binding_id)
-    end
-
     def evaluate code
       @binding.eval(code).inspect
     rescue Exception => e
       "[#{e.class}] #{e.message}"
+    end
+
+    def location
+      @location ||= Location.new(file, line)
+    end
+
+    def binding
+      ObjectSpace._id2ref(binding_id)
     end
 
     def local_id
