@@ -51,6 +51,6 @@ module Readapt
       ObjectSpace._id2ref(nil.object_id)
     end
 
-    NULL_FRAME = Frame.new("(nil)", 0, 0, nil.object_id)
+    NULL_FRAME = Frame.new("", 0, 0, nil.object_id)
   end
 end

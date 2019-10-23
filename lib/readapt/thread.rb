@@ -19,7 +19,5 @@ module Readapt
     def frames
       @frames ||= []
     end
-
-    # NULL_THREAD = Thread.new.freeze
   end
 end
