@@ -54,11 +54,6 @@ int breakpoints_match(char *file, long line)
     return 0;
 }
 
-// int breakpoints_match(char *file, long line)
-// {
-//     return breakpoints_match_id(rb_intern(file), line);
-// }
-
 static VALUE breakpoints_match_s(VALUE self, VALUE file, VALUE line)
 {
     return breakpoints_match(StringValueCStr(file), NUM2LONG(line)) == 0 ? Qfalse : Qtrue;
