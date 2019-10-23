@@ -90,7 +90,7 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
     TypedData_Get_Struct(frame, frame_t, &frame_type, data);
     free(data->file);
     data->file = file;
-    data->line = INT2NUM(line);
+    data->line = line;
     data->method_id = method_id;
     data->binding_id = NUM2LONG(rb_obj_id(binding_id));
 

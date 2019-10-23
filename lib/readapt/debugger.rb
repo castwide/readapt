@@ -15,7 +15,6 @@ module Readapt
 
     def initialize machine = Machine.new
       @stack = []
-      @threads = {}
       @frames = {}
       @running = false
       @attached = false
@@ -37,11 +36,13 @@ module Readapt
 
     # @return [Readapt::Thread]
     def thread id
-      @threads[id] || Thread::NULL_THREAD
+      # @threads[id] || Thread::NULL_THREAD
+      Thread.find(id)
     end
 
     def threads
-      @threads.values
+      # @threads.values
+      Thread.all
     end
 
     def frame id
@@ -124,8 +125,9 @@ module Readapt
     # return [void]
     def debug snapshot
       if snapshot.event == :thread_begin || snapshot.event == :entry
-        @threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id)
-        thr = @threads[snapshot.thread_id]
+        # @threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id)
+        # thr = @threads[snapshot.thread_id]
+        thr = Thread.find(snapshot.thread_id)
         thr.control = :continue
         send_event('thread', {
           reason: 'started',
@@ -135,7 +137,7 @@ module Readapt
       elsif snapshot.event == :thread_end
         thr = thread(snapshot.thread_id)
         thr.control = :continue
-        @threads.delete snapshot.thread_id
+        # @threads.delete snapshot.thread_id
         send_event('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id
@@ -168,22 +170,24 @@ module Readapt
         thread.control = :pause
         # frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
         # thread.frames.push frame
-        thread.frames.replace snapshot.frames
-        thread.frames.each do |frame|
-          @frames[frame.local_id] = frame
+        # thread.frames.replace snapshot.frames
+        frame = thread.frames.first
+        thread.frames.each do |frm|
+          @frames[frm.local_id] = frm
         end
-        @frames[frame.local_id] = frame
+        # @frames[frame.local_id] = frame
         send_event('stopped', {
           reason: snapshot.event,
           threadId: ::Thread.current.object_id
         })
-        sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
+        # sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
+        sleep 0.01 until thread.control != :pause || !Thread.include?(thread.id)
         # @frames.delete frame.local_id
-        thread.frames.each do |frame|
-          @frames.delete frame
+        thread.frames.each do |frm|
+          @frames.delete frm.local_id
         end
         # thread.frames.delete frame
-        thread.frames.clear
+        # thread.frames.clear
         snapshot.control = thread.control
       end
     end

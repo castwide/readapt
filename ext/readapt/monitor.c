@@ -137,13 +137,11 @@ static void
 process_call_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
-	thread_reference_t *ptr;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		ptr = thread_reference_pointer(ref);
-		ptr->depth++;
+		thread_reference_push_frame(ref, tracepoint);
 	}
 }
 
@@ -151,13 +149,11 @@ static void
 process_return_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
-	thread_reference_t *ptr;
 	
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		ptr = thread_reference_pointer(ref);
-		ptr->depth--;
+		thread_reference_pop_frame(ref);
 	}
 }
 

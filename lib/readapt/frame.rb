@@ -23,10 +23,12 @@ module Readapt
 
     def binding
       @binding ||= ObjectSpace._id2ref(binding_id)
+    rescue RangeError
+      @binding = ObjectSpace._id2ref(nil.object_id)
     end
 
     def local_id
-      binding.object_id
+      binding_id
     end
 
     def locals
