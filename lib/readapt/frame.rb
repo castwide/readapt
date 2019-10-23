@@ -18,7 +18,7 @@ module Readapt
     end
 
     def location
-      @location ||= Location.new(file, line)
+      Location.new(file, line)
     end
 
     def local_id
@@ -46,9 +46,9 @@ module Readapt
     private
 
     def frame_binding
-      @frame_binding ||= ObjectSpace._id2ref(binding_id)
+      ObjectSpace._id2ref(binding_id)
     rescue RangeError
-      @frame_binding = ObjectSpace._id2ref(nil.object_id)
+      ObjectSpace._id2ref(nil.object_id)
     end
 
     NULL_FRAME = Frame.new("(nil)", 0, 0, nil.object_id)

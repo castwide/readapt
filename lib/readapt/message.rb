@@ -57,5 +57,6 @@ module Readapt
     register 'disconnect', Message::Disconnect
     register 'pause', Message::Pause
     register 'evaluate', Message::Evaluate
+    # register 'source', Message::Base # @todo Placeholder
   end
 end

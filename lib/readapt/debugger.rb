@@ -36,12 +36,10 @@ module Readapt
 
     # @return [Readapt::Thread]
     def thread id
-      # @threads[id] || Thread::NULL_THREAD
       Thread.find(id)
     end
 
     def threads
-      # @threads.values
       Thread.all
     end
 
@@ -125,8 +123,6 @@ module Readapt
     # return [void]
     def debug snapshot
       if snapshot.event == :thread_begin || snapshot.event == :entry
-        # @threads[snapshot.thread_id] ||= Thread.new(snapshot.thread_id)
-        # thr = @threads[snapshot.thread_id]
         thr = Thread.find(snapshot.thread_id)
         thr.control = :continue
         send_event('thread', {
@@ -143,8 +139,6 @@ module Readapt
           threadId: snapshot.thread_id
         })
         snapshot.control = :continue
-      # elsif snapshot.event == :entry
-      #   snapshot.control = :continue
       else
         if snapshot.event == :breakpoint
           bp = get_breakpoint(snapshot.file, snapshot.line)
@@ -168,26 +162,17 @@ module Readapt
         changed
         thread = self.thread(snapshot.thread_id)
         thread.control = :pause
-        # frame = Frame.new(Location.new(snapshot.file, snapshot.line), snapshot.binding_id)
-        # thread.frames.push frame
-        # thread.frames.replace snapshot.frames
-        frame = thread.frames.first
         thread.frames.each do |frm|
           @frames[frm.local_id] = frm
         end
-        # @frames[frame.local_id] = frame
         send_event('stopped', {
           reason: snapshot.event,
-          threadId: ::Thread.current.object_id
+          threadId: thread.id
         })
-        # sleep 0.01 until thread.control != :pause || !@threads.key?(thread.id)
         sleep 0.01 until thread.control != :pause || !Thread.include?(thread.id)
-        # @frames.delete frame.local_id
         thread.frames.each do |frm|
           @frames.delete frm.local_id
         end
-        # thread.frames.delete frame
-        # thread.frames.clear
         snapshot.control = thread.control
       end
     end
