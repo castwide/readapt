@@ -59,6 +59,10 @@ static char* copy_string(VALUE string)
     char *dst;
     char *src;
 
+    if (string == Qnil)
+    {
+        return NULL;
+    }
     src = StringValueCStr(string);
     dst = malloc(sizeof(char) * strlen(src));
     strcpy(dst, src);
