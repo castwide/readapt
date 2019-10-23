@@ -64,7 +64,7 @@ static char* copy_string(VALUE string)
         return NULL;
     }
     src = StringValueCStr(string);
-    dst = malloc(sizeof(char) * strlen(src));
+    dst = malloc(sizeof(char) * (strlen(src) + 1));
     strcpy(dst, src);
     return dst;
 }
@@ -87,12 +87,12 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
 	bnd = rb_tracearg_binding(tracearg);
 	binding_id = NUM2LONG(rb_obj_id(bnd));
 
-    TypedData_Get_Struct(frame, frame_t, &frame_type, data);
-    free(data->file);
-    data->file = file;
-    data->line = line;
-    data->method_id = method_id;
-    data->binding_id = NUM2LONG(rb_obj_id(binding_id));
+    // TypedData_Get_Struct(frame, frame_t, &frame_type, data);
+    // free(data->file);
+    // data->file = file;
+    // data->line = line;
+    // data->method_id = method_id;
+    // data->binding_id = NUM2LONG(rb_obj_id(binding_id));
 
     return frame;
 }
