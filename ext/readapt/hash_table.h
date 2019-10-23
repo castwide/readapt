@@ -1,8 +1,6 @@
 #ifndef HASH_TABLE_H_
 #define HASH_TABLE_H_
 
-#include "ruby.h"
-
 typedef struct ht_long_array
 {
     long *items;

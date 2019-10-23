@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "hash_table.h"
-#include "ruby.h"
 
 static ht_long_array *copy_array(const long *value, const long size)
 {
