@@ -12,14 +12,3 @@ task :default => :spec
 Rake::ExtensionTask.new "readapt" do |ext|
   ext.lib_dir = "lib/readapt"
 end
-
-namespace :install do
-  desc 'Install on Windows'
-  task :win do
-    Dir.mktmpdir do |tmp|
-      gemfile = File.join(tmp, 'readapt.gem')
-      system("gem build readapt.gemspec -o #{gemfile}") &&
-        system("gem install #{gemfile}")
-    end
-  end
-end
