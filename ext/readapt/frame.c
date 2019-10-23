@@ -92,7 +92,7 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
     data->file = file;
     data->line = line;
     data->method_id = method_id;
-    data->binding_id = NUM2LONG(rb_obj_id(binding_id));
+    data->binding_id = binding_id;
 
     return frame;
 }
@@ -102,7 +102,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VA
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
     data->file = copy_string(file);
-    data->line = INT2NUM(line);
+    data->line = NUM2INT(line);
     data->method_id = rb_intern("placeholder"); // TODO Real value
     data->binding_id = NUM2LONG(binding_id);
     return self;
