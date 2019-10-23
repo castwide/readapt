@@ -12,7 +12,7 @@ module Readapt
   # @!method initialize(file, line, method_id, binding_id)
   class Frame
     def evaluate code
-      binding.eval(code).inspect
+      frame_binding.eval(code).inspect
     rescue Exception => e
       "[#{e.class}] #{e.message}"
     end
@@ -21,32 +21,34 @@ module Readapt
       @location ||= Location.new(file, line)
     end
 
-    def binding
-      @binding ||= ObjectSpace._id2ref(binding_id)
-    rescue RangeError
-      @binding = ObjectSpace._id2ref(nil.object_id)
-    end
-
     def local_id
       binding_id
     end
 
     def locals
-      return [] if binding.nil?
+      return [] if frame_binding.nil?
       result = []
-      binding.local_variables.each do |sym|
-        var = binding.local_variable_get(sym)
+      frame_binding.local_variables.each do |sym|
+        var = frame_binding.local_variable_get(sym)
         result.push Variable.new(sym, var)
       end
-      if binding.receiver != TOPLEVEL_BINDING.receiver
-        result.push Variable.new(:self, binding.receiver)
+      if frame_binding.receiver != TOPLEVEL_BINDING.receiver
+        result.push Variable.new(:self, frame_binding.receiver)
       end
       result
     end
 
     def local sym
-      return binding.receiver if sym == :self
-      binding.local_variable_get sym
+      return frame_binding.receiver if sym == :self
+      frame_binding.local_variable_get sym
+    end
+
+    private
+
+    def frame_binding
+      @frame_binding ||= ObjectSpace._id2ref(binding_id)
+    rescue RangeError
+      @frame_binding = ObjectSpace._id2ref(nil.object_id)
     end
 
     NULL_FRAME = Frame.new("(nil)", 0, 0, nil.object_id)
