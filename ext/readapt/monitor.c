@@ -183,9 +183,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 		ref = thread_reference(thr);
 		if (ref != Qnil)
 		{
-			fprintf(stderr, "Ending?\n");
 			ptr = thread_reference_pointer(ref);
-			fprintf(stderr, "Yep\n");
 			monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
 			thread_delete_reference(thr);
 		}
