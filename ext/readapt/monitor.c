@@ -178,14 +178,18 @@ process_thread_end_event(VALUE tracepoint, void *data)
 	thread_reference_t *ptr;
 
 	thr = rb_thread_current();
-	ref = thread_reference(thr);
-	if (ref != Qnil)
+	if (thr != Qnil)
 	{
-		ptr = thread_reference_pointer(ref);
-		monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
-		thread_delete_reference(thr);
+		ref = thread_reference(thr);
+		if (ref != Qnil)
+		{
+			fprintf(stderr, "Ending?\n");
+			ptr = thread_reference_pointer(ref);
+			fprintf(stderr, "Yep\n");
+			monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
+			thread_delete_reference(thr);
+		}
 	}
-	thread_reference_pop_frame(ref);
 }
 
 static VALUE
