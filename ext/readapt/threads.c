@@ -3,7 +3,7 @@
 #include "threads.h"
 #include "frame.h"
 
-#define FRAME_CAPACITY 100;
+#define FRAME_CAPACITY 20;
 
 static VALUE c_Thread;
 static VALUE threads;
@@ -125,7 +125,7 @@ void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 	if (data->depth == data->capacity)
 	{
 		data->capacity += FRAME_CAPACITY;
-		realloc(data->frames, sizeof(frame_t) * data->capacity);
+		data->frames = realloc(data->frames, sizeof(frame_t) * data->capacity);
 	}
 	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
 	data->depth++;
