@@ -120,8 +120,6 @@ void thread_decrement_depth(VALUE ref)
 void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
-	frame_t **tmp;
-	int i;
 
 	data = thread_reference_pointer(ref);
 	if (data->depth == data->capacity)
@@ -129,8 +127,7 @@ void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 		data->capacity += FRAME_CAPACITY;
 		realloc(data->frames, sizeof(frame_t) * data->capacity);
 	}
-	tmp = malloc(sizeof(frame_t) * (data->depth + 1));
-	tmp[data->depth] = frame_data_from_tracepoint(tracepoint);
+	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
 	data->depth++;
 }
 
@@ -154,9 +151,6 @@ frame_t *thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 void thread_reference_pop_frame(VALUE ref)
 {
 	thread_reference_t *data;
-	frame_t *deleted;
-	frame_t **tmp;
-	int i;
 
 	data = thread_reference_pointer(ref);
 	if (data->depth > 0)
@@ -174,8 +168,14 @@ void thread_clear()
 
 VALUE thread_allocate_s(VALUE self)
 {
-	frame_t *data = malloc(sizeof(frame_t));
-    return TypedData_Wrap_Struct(self, &thread_reference_type, data);
+	thread_reference_t *data = malloc(sizeof(thread_reference_t));
+	data->control = rb_intern("continue");
+	data->depth = 0;
+	data->cursor = 0;
+	data->capacity = FRAME_CAPACITY;
+	data->frames = malloc(sizeof(frame_t) * data->capacity);
+	data->id = 0;
+	return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
 
 VALUE thread_all_s(VALUE self)

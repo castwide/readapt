@@ -49,7 +49,6 @@ void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
 {
 	VALUE path, bnd;
 	rb_trace_arg_t *tracearg;
-    char *file;
     char *tmp;
     int line;
 	long binding_id;
@@ -117,7 +116,14 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    data->file = normalize_path_new_cstr(StringValueCStr(file));
+    if (file == Qnil)
+    {
+        data->file = NULL;
+    }
+    else
+    {
+        data->file = normalize_path_new_cstr(StringValueCStr(file));
+    }
     data->line = NUM2INT(line);
     data->binding_id = NUM2LONG(binding_id);
     return self;

@@ -5,7 +5,7 @@ RSpec.describe Readapt::Message::Evaluate do
       send(:binding)
     }.call
     @debugger = double(:Debugger)
-    @frame = Readapt::Frame.new(nil, 0, nil, bind.object_id)
+    @frame = Readapt::Frame.new(nil, 0, bind.object_id)
     allow(@debugger).to receive(:frame) { @frame }
     arguments = {
       'expression' => '[value]'

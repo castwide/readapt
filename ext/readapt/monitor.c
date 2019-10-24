@@ -74,7 +74,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 static void
 process_line_event(VALUE tracepoint, void *data)
 {
-	VALUE ref, tmp;
+	VALUE ref;
 	thread_reference_t *ptr;
 	int threadPaused;
 	ID dapEvent;
@@ -85,6 +85,11 @@ process_line_event(VALUE tracepoint, void *data)
 	{
 		frame = thread_reference_update_frame(ref, tracepoint);
 		ptr = thread_reference_pointer(ref);
+		threadPaused = (ptr->control == id_pause);
+		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
+		{
+			return;
+		}
 		dapEvent = id_continue;
 		if (!firstLineEvent)
 		{
