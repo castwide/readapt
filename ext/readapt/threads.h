@@ -8,6 +8,7 @@ typedef struct thread_reference_struct {
 	int depth;
 	int cursor;
 	ID control;
+	frame_t **frames;
 } thread_reference_t;
 
 void initialize_threads(VALUE);

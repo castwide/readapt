@@ -35,6 +35,7 @@ VALUE thread_reference_new(VALUE thr)
 	data->depth = 0;
 	data->cursor = 0;
 	data->control = rb_intern("continue");
+	data->frames = NULL;
 	return obj;
 }
 
@@ -106,40 +107,76 @@ void thread_decrement_depth(VALUE ref)
 
 VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
-	VALUE frm_ary, frame;
+	// VALUE frm_ary, frame;
 
-	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	frame = frame_new_from_tracepoint(tracepoint);
-	rb_ary_unshift(frm_ary, frame);
-	thread_increment_depth(ref);
-	return frame;
+	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	// frame = frame_new_from_tracepoint(tracepoint);
+	// rb_ary_unshift(frm_ary, frame);
+	// thread_increment_depth(ref);
+	// return frame;
+
+	thread_reference_t *data;
+	frame_t **tmp;
+	int i;
+
+	data = thread_reference_pointer(ref);
+	tmp = malloc(sizeof(frame_t) * (data->depth + 1));
+	tmp[0] = frame_new_from_tracepoint(tracepoint);
+	for (i = 0; i < data->depth; i++)
+	{
+		tmp[i + 1] = data->frames[i];
+	}
+	free(data->frames);
+	data->frames = tmp;
+	data->depth++;
+
+	return Qnil;
 }
 
 VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 {
-	VALUE frm_ary, frame;
-	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	frame = rb_ary_entry(frm_ary, 0);
-	if (frame == Qnil)
-	{
-		frame = frame_new_from_tracepoint(tracepoint);
-		rb_ary_unshift(frm_ary, frame);
-		thread_increment_depth(ref);
-	}
-	else
-	{
-		frame_update_from_tracepoint(frame, tracepoint);
-	}
-	return frame;
+	// VALUE frm_ary, frame;
+	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	// frame = rb_ary_entry(frm_ary, 0);
+	// if (frame == Qnil)
+	// {
+	// 	frame = frame_new_from_tracepoint(tracepoint);
+	// 	rb_ary_unshift(frm_ary, frame);
+	// 	thread_increment_depth(ref);
+	// }
+	// else
+	// {
+	// 	frame_update_from_tracepoint(frame, tracepoint);
+	// }
+	// return frame;
+
+	return Qnil;
 }
 
 VALUE thread_reference_pop_frame(VALUE ref)
 {
-	VALUE frm_ary;
+	// VALUE frm_ary;
 
-	thread_decrement_depth(ref);
-	frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	return rb_ary_shift(frm_ary);
+	// thread_decrement_depth(ref);
+	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
+	// return rb_ary_shift(frm_ary);
+
+	thread_reference_t *data;
+	frame_t **tmp;
+	int i;
+
+	data = thread_reference_pointer(ref);
+	tmp = malloc(sizeof(frame_t) * (data->depth - 1));
+	for (i = 1; i < data->depth; i++)
+	{
+		tmp[i - 1] = data->frames[i];
+	}
+	frame_free(data->frames[0]);
+	free(data->frames);
+	data->frames = tmp;
+	data->depth++;
+
+	return Qnil;
 }
 
 void thread_clear()
@@ -174,11 +211,29 @@ VALUE thread_id_m(VALUE self)
 	return LONG2NUM(data->id);
 }
 
+VALUE frames_m(VALUE self)
+{
+	thread_reference_t *data;
+	VALUE ary;
+	VALUE frm;
+	int i;
+
+	data = thread_reference_pointer(self);
+	for (i = 0; i < data->depth; i++)
+	{
+		frm = frame_new_from_data(data->frames[i]);
+		rb_ary_push(ary, frm);
+	}
+
+	return ary;
+}
+
 void initialize_threads(VALUE m_Readapt)
 {
 	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cData);
 	rb_define_alloc_func(c_Thread, thread_allocate_s);
 	rb_define_method(c_Thread, "id", thread_id_m, 0);
+	rb_define_method(c_Thread, "frames", frames_m, 0);
 	rb_define_singleton_method(c_Thread, "all", thread_all_s, 0);
 	rb_define_singleton_method(c_Thread, "find", thread_find_s, 1);
 	rb_define_singleton_method(c_Thread, "include?", thread_include_s, 1);

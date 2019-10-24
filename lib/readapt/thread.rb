@@ -16,8 +16,8 @@ module Readapt
       end
     end
 
-    def frames
-      @frames ||= []
-    end
+    # def frames
+    #   @frames ||= []
+    # end
   end
 end

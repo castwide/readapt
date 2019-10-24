@@ -54,6 +54,38 @@ VALUE frame_new_from_tracepoint(VALUE tracepoint)
     return frame_update_from_tracepoint(frm, tracepoint);
 }
 
+frame_t *frame_data_from_tracepoint(VALUE tracepoint)
+{
+    frame_t *data;
+	VALUE tmp, bnd;
+	rb_trace_arg_t *tracearg;
+    char *file;
+    int line;
+	ID method_id;
+	long binding_id;
+
+    data = malloc(sizeof(frame_t));
+    tracearg = rb_tracearg_from_tracepoint(tracepoint);
+    tmp = rb_tracearg_path(tracearg);
+    file = copy_string(tmp);
+    line = NUM2INT(rb_tracearg_lineno(tracearg));
+    method_id = rb_intern("placeholder");
+    bnd = rb_tracearg_binding(tracearg);
+	binding_id = NUM2LONG(rb_obj_id(bnd));
+
+    data->file = file;
+    data->line = line;
+    data->method_id = method_id;
+    data->binding_id = binding_id;
+
+    return data;
+}
+
+VALUE frame_new_from_data(frame_t *data)
+{
+    return TypedData_Wrap_Struct(c_Frame, &frame_type, data);
+}
+
 static char* copy_string(VALUE string)
 {
     char *dst;
@@ -67,65 +99,6 @@ static char* copy_string(VALUE string)
     dst = malloc(sizeof(char) * (strlen(src) + 1));
     strcpy(dst, src);
     return dst;
-}
-
-ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
-{
-    VALUE symbol, receiver, str, id;
-
-    // TODO method_id or callee_id?
-    symbol = rb_tracearg_callee_id(arg);
-    if (symbol == Qnil)
-    {
-        // receiver = rb_tracearg_self(arg);
-        // if (rb_obj_is_kind_of(receiver, rb_cModule) || (rb_obj_is_kind_of(receiver, rb_cClass)))
-        // {
-        //     str = rb_funcall(receiver, rb_intern("to_s"), 0);
-        // }
-        // else
-        // {
-        //     // TODO Maybe change this so it returns either (main) or the name
-        //     // of the class.
-        //     str = rb_funcall(receiver, rb_intern("to_s"), 0);
-        // }
-        // rb_funcall(str, rb_intern("prepend"), 1, rb_str_new_cstr("("));
-        // rb_funcall(str, rb_intern("concat"), 1, rb_str_new_cstr(")"));
-        // id = rb_intern(StringValueCStr(str));
-        id = rb_intern("...");
-    }
-    else
-    {
-        id = SYM2ID(symbol);
-    }
-    return id;
-}
-
-VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
-{
-	VALUE tmp, bnd;
-	rb_trace_arg_t *tracearg;
-    frame_t *data;
-    char *file;
-    int line;
-	ID method_id;
-	long binding_id;
-
-    tracearg = rb_tracearg_from_tracepoint(tracepoint);
-    tmp = rb_tracearg_path(tracearg);
-    file = copy_string(tmp);
-    line = NUM2INT(rb_tracearg_lineno(tracearg));
-    method_id = frame_method_id_from_tracearg(tracearg);
-    bnd = rb_tracearg_binding(tracearg);
-	binding_id = NUM2LONG(rb_obj_id(bnd));
-
-    TypedData_Get_Struct(frame, frame_t, &frame_type, data);
-    free(data->file);
-    data->file = file;
-    data->line = line;
-    data->method_id = method_id;
-    data->binding_id = binding_id;
-
-    return frame;
 }
 
 VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VALUE binding_id)
