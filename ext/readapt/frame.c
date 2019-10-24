@@ -69,6 +69,35 @@ static char* copy_string(VALUE string)
     return dst;
 }
 
+ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
+{
+    VALUE symbol, receiver, str, id;
+
+    // TODO method_id or callee_id?
+    symbol = rb_tracearg_callee_id(arg);
+    if (symbol == Qnil)
+    {
+        receiver = rb_tracearg_self(arg);
+        if (rb_obj_is_kind_of(receiver, rb_cModule) || (rb_obj_is_kind_of(receiver, rb_cClass)))
+        {
+            str = rb_funcall(receiver, rb_intern("name"), 0);
+        }
+        else
+        {
+            str = rb_any_to_s(rb_funcall(receiver, rb_intern("class"), 0));
+        }
+        rb_funcall(str, rb_intern("prepend"), 1, rb_str_new_cstr("("));
+        rb_funcall(str, rb_intern("concat"), 1, rb_str_new_cstr(")"));
+        id = rb_intern(StringValueCStr(str));
+    }
+    else
+    {
+        str = rb_any_to_s(symbol);
+        id = rb_intern(StringValueCStr(str));
+    }
+    return id;
+}
+
 VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
 {
 	VALUE tmp, bnd;
@@ -103,7 +132,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VA
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
     data->file = copy_string(file);
     data->line = NUM2INT(line);
-    data->method_id = rb_intern("placeholder"); // TODO Real value
+    data->method_id = SYM2ID(rb_to_symbol(method_id));
     data->binding_id = NUM2LONG(binding_id);
     return self;
 }

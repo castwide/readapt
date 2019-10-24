@@ -8,7 +8,7 @@ module Readapt
         set_body({
           stackFrames: frames.map do |frm|
             {
-              name: "#{File.basename(frm.location.file)}:#{frm.location.line}",
+              name: "#{frm.method_id}",
               source: {
                 name: File.basename(frm.location.file),
                 path: frm.location.file
