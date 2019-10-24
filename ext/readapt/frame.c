@@ -1,6 +1,7 @@
 #include "ruby.h"
 #include "ruby/debug.h"
 #include "frame.h"
+#include "normalize.h"
 
 static VALUE c_Frame;
 
@@ -9,21 +10,6 @@ void frame_free(void *data)
     frame_t *frm = data;
     free(frm->file);
     free(frm);
-}
-
-static char *copy_string(VALUE string)
-{
-    char *dst;
-    char *src;
-
-    if (string == Qnil)
-    {
-        return NULL;
-    }
-    src = StringValueCStr(string);
-    dst = malloc(sizeof(char) * (strlen(src) + 1));
-    strcpy(dst, src);
-    return dst;
 }
 
 static size_t
@@ -74,12 +60,23 @@ void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
 
-    tmp = StringValueCStr(path);
+    if (path == Qnil)
+    {
+        tmp = NULL;
+    }
+    else
+    {
+        tmp = normalize_path_new_cstr(StringValueCStr(path));
+    }
+    
     if (strcmp(dst->file, tmp) != 0)
     {
-        file = malloc((strlen(tmp) + 1) * sizeof(char));
         free(dst->file);
-        dst->file = file;
+        dst->file = tmp;
+    }
+    else
+    {
+        free(tmp);
     }
     dst->line = line;
     dst->binding_id = binding_id;
@@ -97,7 +94,14 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     data = malloc(sizeof(frame_t));
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
     tmp = rb_tracearg_path(tracearg);
-    file = copy_string(tmp);
+    if (tmp == Qnil)
+    {
+        file = NULL;
+    }
+    else
+    {
+        file = normalize_path_new_cstr(StringValueCStr(tmp));
+    }
     line = NUM2INT(rb_tracearg_lineno(tracearg));
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
@@ -113,7 +117,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    data->file = copy_string(file);
+    data->file = normalize_path_new_cstr(StringValueCStr(file));
     data->line = NUM2INT(line);
     data->binding_id = NUM2LONG(binding_id);
     return self;

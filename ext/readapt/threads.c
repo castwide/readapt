@@ -3,6 +3,8 @@
 #include "threads.h"
 #include "frame.h"
 
+#define FRAME_CAPACITY 100;
+
 static VALUE c_Thread;
 static VALUE threads;
 
@@ -42,9 +44,10 @@ VALUE thread_reference_new(VALUE thr)
 	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
 	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
 	data->depth = 0;
+	data->capacity = FRAME_CAPACITY;
 	data->cursor = 0;
 	data->control = rb_intern("continue");
-	data->frames = NULL;
+	data->frames = malloc(sizeof(frame_t) * data->capacity);
 	return obj;
 }
 
@@ -114,39 +117,21 @@ void thread_decrement_depth(VALUE ref)
 	data->depth--;
 }
 
-frame_t *thread_reference_push_frame(VALUE ref, VALUE tracepoint)
+void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
 	frame_t **tmp;
 	int i;
 
 	data = thread_reference_pointer(ref);
-	tmp = malloc(sizeof(frame_t) * (data->depth + 1));
-	tmp[0] = frame_data_from_tracepoint(tracepoint);
-	for (i = 0; i < data->depth; i++)
+	if (data->depth == data->capacity)
 	{
-		tmp[i + 1] = data->frames[i];
+		data->capacity += FRAME_CAPACITY;
+		realloc(data->frames, sizeof(frame_t) * data->capacity);
 	}
-	free(data->frames);
-	data->frames = tmp;
+	tmp = malloc(sizeof(frame_t) * (data->depth + 1));
+	tmp[data->depth] = frame_data_from_tracepoint(tracepoint);
 	data->depth++;
-
-	return data;
-}
-
-static char *copy_string(VALUE string)
-{
-    char *dst;
-    char *src;
-
-    if (string == Qnil)
-    {
-        return NULL;
-    }
-    src = StringValueCStr(string);
-    dst = malloc(sizeof(char) * (strlen(src) + 1));
-    strcpy(dst, src);
-    return dst;
 }
 
 frame_t *thread_reference_update_frame(VALUE ref, VALUE tracepoint)
@@ -160,10 +145,10 @@ frame_t *thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 	}
 	else
 	{
-		frame_update_from_tracepoint(tracepoint, data->frames[0]);
+		frame_update_from_tracepoint(tracepoint, data->frames[data->depth - 1]);
 	}
 
-	return data->frames[0];
+	return data->frames[data->depth - 1];
 }
 
 void thread_reference_pop_frame(VALUE ref)
@@ -176,14 +161,8 @@ void thread_reference_pop_frame(VALUE ref)
 	data = thread_reference_pointer(ref);
 	if (data->depth > 0)
 	{
-		tmp = malloc(sizeof(frame_t) * (data->depth - 1));
-		for (i = 1; i < data->depth; i++)
-		{
-			tmp[i - 1] = data->frames[i];
-		}
-		frame_free(data->frames[0]);
-		free(data->frames);
-		data->frames = tmp;
+		frame_free(data->frames[data->depth - 1]);
+		data->frames[data->depth - 1] = NULL;
 		data->depth--;
 	}
 }
@@ -229,7 +208,7 @@ VALUE frames_m(VALUE self)
 
 	ary = rb_ary_new();
 	data = thread_reference_pointer(self);
-	for (i = 0; i < data->depth; i++)
+	for (i = data->depth - 1; i >= 0; i--)
 	{
 		frm = frame_new_from_data(data->frames[i]);
 		rb_ary_push(ary, frm);
