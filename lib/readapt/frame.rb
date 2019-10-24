@@ -46,11 +46,13 @@ module Readapt
     private
 
     def frame_binding
-      ObjectSpace._id2ref(binding_id)
-    rescue RangeError
+      obj = ObjectSpace._id2ref(binding_id)
+      raise RangeError, "Frame contains #{obj.class} instead of Binding" unless obj.is_a?(Binding)
+      obj
+    rescue RangeError => e
+      STDERR.puts "[#{e.class}] #{e.message}"
       ObjectSpace._id2ref(nil.object_id)
     end
-
     NULL_FRAME = Frame.new("", 0, 0, nil.object_id)
   end
 end

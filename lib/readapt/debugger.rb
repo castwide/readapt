@@ -122,6 +122,8 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
+      gc_already_disabled = GC.disable
+      sleep 0.001 # @todo Trying to let thread data sync
       if snapshot.event == :thread_begin || snapshot.event == :entry
         thr = Thread.find(snapshot.thread_id)
         thr.control = :continue
@@ -140,6 +142,7 @@ module Readapt
         })
         snapshot.control = :continue
       else
+        confirmed_pause = true
         if snapshot.event == :breakpoint
           bp = get_breakpoint(snapshot.file, snapshot.line)
           unless bp.condition.nil? || bp.condition.empty?
@@ -147,34 +150,37 @@ module Readapt
             bnd = ObjectSpace._id2ref(snapshot.binding_id)
             begin
               unless bnd.eval(bp.condition)
-                snapshot.control = :continue
-                return
+                confirmed_pause = false
               end
             rescue Exception => e
               STDERR.puts "Breakpoint condition raised an error"
               STDERR.puts "#{snapshot.file}:#{snapshot.line} - `#{bp.condition}`"
               STDERR.puts "[#{e.class}] #{e.message}"
-              snapshot.control = :continue
-              return
+              confirmed_pause = false
             end
           end
         end
-        changed
-        thread = self.thread(snapshot.thread_id)
-        thread.control = :pause
-        thread.frames.each do |frm|
-          @frames[frm.local_id] = frm
-        end
-        send_event('stopped', {
-          reason: snapshot.event,
-          threadId: thread.id
-        })
-        sleep 0.01 until thread.control != :pause || !Thread.include?(thread.id)
-        thread.frames.each do |frm|
-          @frames.delete frm.local_id
+        if confirmed_pause
+          changed
+          thread = self.thread(snapshot.thread_id)
+          thread.control = :pause
+          thread.frames.each do |frm|
+            @frames[frm.local_id] = frm
+          end
+          send_event('stopped', {
+            reason: snapshot.event,
+            threadId: thread.id
+          })
+          sleep 0.01 until thread.control != :pause || !Thread.include?(thread.id)
+          thread.frames.each do |frm|
+            @frames.delete frm.local_id
+          end
+        else
+          thread.control = :continue
         end
         snapshot.control = thread.control
       end
+      GC.enable unless gc_already_disabled
     end
 
     def set_program_args

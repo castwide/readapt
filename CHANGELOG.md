@@ -1,4 +1,5 @@
-# 0.7.2
+# 0.8.0
+- Multiple frames
 - Flush output on disconnect
 
 # 0.7.1 - October 13, 2019
