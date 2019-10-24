@@ -77,18 +77,21 @@ ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
     symbol = rb_tracearg_callee_id(arg);
     if (symbol == Qnil)
     {
-        receiver = rb_tracearg_self(arg);
-        if (rb_obj_is_kind_of(receiver, rb_cModule) || (rb_obj_is_kind_of(receiver, rb_cClass)))
-        {
-            str = rb_any_to_s(rb_funcall(receiver, rb_intern("name"), 0));
-        }
-        else
-        {
-            str = rb_funcall(receiver, rb_intern("to_s"), 0);
-        }
-        rb_funcall(str, rb_intern("prepend"), 1, rb_str_new_cstr("("));
-        rb_funcall(str, rb_intern("concat"), 1, rb_str_new_cstr(")"));
-        id = rb_intern(StringValueCStr(str));
+        // receiver = rb_tracearg_self(arg);
+        // if (rb_obj_is_kind_of(receiver, rb_cModule) || (rb_obj_is_kind_of(receiver, rb_cClass)))
+        // {
+        //     str = rb_funcall(receiver, rb_intern("to_s"), 0);
+        // }
+        // else
+        // {
+        //     // TODO Maybe change this so it returns either (main) or the name
+        //     // of the class.
+        //     str = rb_funcall(receiver, rb_intern("to_s"), 0);
+        // }
+        // rb_funcall(str, rb_intern("prepend"), 1, rb_str_new_cstr("("));
+        // rb_funcall(str, rb_intern("concat"), 1, rb_str_new_cstr(")"));
+        // id = rb_intern(StringValueCStr(str));
+        id = rb_intern("...");
     }
     else
     {

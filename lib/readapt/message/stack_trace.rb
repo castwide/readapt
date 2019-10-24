@@ -10,7 +10,7 @@ module Readapt
             {
               name: "#{frm.method_id}",
               source: {
-                name: File.basename(frm.location.file),
+                name: frm.location.file ? File.basename(frm.location.file) : nil,
                 path: frm.location.file
               },
               id: frm.local_id,
