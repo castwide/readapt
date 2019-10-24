@@ -114,7 +114,7 @@ void thread_decrement_depth(VALUE ref)
 	data->depth--;
 }
 
-VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
+frame_t *thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
 	frame_t **tmp;
@@ -131,7 +131,7 @@ VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 	data->frames = tmp;
 	data->depth++;
 
-	return Qnil;
+	return data;
 }
 
 static char *copy_string(VALUE string)
@@ -149,7 +149,7 @@ static char *copy_string(VALUE string)
     return dst;
 }
 
-VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
+frame_t *thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
 
@@ -163,27 +163,29 @@ VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 		frame_update_from_tracepoint(tracepoint, data->frames[0]);
 	}
 
-	return Qnil;
+	return data->frames[0];
 }
 
-VALUE thread_reference_pop_frame(VALUE ref)
+void thread_reference_pop_frame(VALUE ref)
 {
 	thread_reference_t *data;
+	frame_t *deleted;
 	frame_t **tmp;
 	int i;
 
 	data = thread_reference_pointer(ref);
-	tmp = malloc(sizeof(frame_t) * (data->depth - 1));
-	for (i = 1; i < data->depth; i++)
+	if (data->depth > 0)
 	{
-		tmp[i - 1] = data->frames[i];
+		tmp = malloc(sizeof(frame_t) * (data->depth - 1));
+		for (i = 1; i < data->depth; i++)
+		{
+			tmp[i - 1] = data->frames[i];
+		}
+		frame_free(data->frames[0]);
+		free(data->frames);
+		data->frames = tmp;
+		data->depth--;
 	}
-	frame_free(data->frames[0]);
-	free(data->frames);
-	data->frames = tmp;
-	data->depth--;
-
-	return Qnil;
 }
 
 void thread_clear()
