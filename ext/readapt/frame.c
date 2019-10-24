@@ -80,7 +80,7 @@ ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
         receiver = rb_tracearg_self(arg);
         if (rb_obj_is_kind_of(receiver, rb_cModule) || (rb_obj_is_kind_of(receiver, rb_cClass)))
         {
-            str = rb_funcall(receiver, rb_intern("name"), 0);
+            str = rb_any_to_s(rb_funcall(receiver, rb_intern("name"), 0));
         }
         else
         {
@@ -92,8 +92,6 @@ ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
     }
     else
     {
-        // str = rb_any_to_s(symbol);
-        // id = rb_intern(StringValueCStr(str));
         id = SYM2ID(symbol);
     }
     return id;
