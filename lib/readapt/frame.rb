@@ -5,11 +5,9 @@ module Readapt
   #   @return [String]
   # @!method line
   #   @return [Integer]
-  # @!method method_id
-  #   @return [Symbol]
   # @!method binding_id
   #   @return [Integer]
-  # @!method initialize(file, line, method_id, binding_id)
+  # @!method initialize(file, line, binding_id)
   class Frame
     def evaluate code
       frame_binding.eval(code).inspect
@@ -53,6 +51,6 @@ module Readapt
       STDERR.puts "[#{e.class}] #{e.message}"
       ObjectSpace._id2ref(nil.object_id)
     end
-    NULL_FRAME = Frame.new("", 0, nil, nil.object_id)
+    NULL_FRAME = Frame.new("", 0, nil.object_id)
   end
 end

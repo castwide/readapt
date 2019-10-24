@@ -50,7 +50,6 @@ VALUE frame_allocate_s(VALUE self)
     obj = TypedData_Wrap_Struct(self, &frame_type, data);
     data->file = NULL;
     data->line = 0;
-    data->method_id = rb_intern("");
     data->binding_id = 0;
     return obj;
 }
@@ -66,21 +65,18 @@ void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
 	rb_trace_arg_t *tracearg;
     char *file;
     int line;
-	ID method_id;
 	long binding_id;
 
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
     tmp = rb_tracearg_path(tracearg);
     file = copy_string(tmp);
     line = NUM2INT(rb_tracearg_lineno(tracearg));
-    method_id = rb_intern("placeholder");
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
 
     free(dst->file);
     dst->file = file;
     dst->line = line;
-    dst->method_id = method_id;
     dst->binding_id = binding_id;
 }
 
@@ -91,7 +87,6 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     rb_trace_arg_t *tracearg;
     char *file;
     int line;
-    ID method_id;
     long binding_id;
 
     data = malloc(sizeof(frame_t));
@@ -99,25 +94,22 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     tmp = rb_tracearg_path(tracearg);
     file = copy_string(tmp);
     line = NUM2INT(rb_tracearg_lineno(tracearg));
-    method_id = rb_intern("placeholder");
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
 
     data->file = file;
     data->line = line;
-    data->method_id = method_id;
     data->binding_id = binding_id;
 
     return data;
 }
 
-VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VALUE binding_id)
+VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
     data->file = copy_string(file);
     data->line = NUM2INT(line);
-    data->method_id = SYM2ID(rb_to_symbol(rb_any_to_s(method_id)));
     data->binding_id = NUM2LONG(binding_id);
     return self;
 }
@@ -131,7 +123,6 @@ VALUE frame_new_from_data(frame_t *data)
         obj,
         rb_str_new_cstr(data->file),
         INT2NUM(data->line),
-        ID2SYM(data->method_id),
         LONG2NUM(data->binding_id));
 
     return obj;
@@ -158,13 +149,6 @@ VALUE frame_line(VALUE self)
     return INT2NUM(data->line);
 }
 
-VALUE frame_method_id(VALUE self)
-{
-    frame_t *data;
-    TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    return ID2SYM(data->method_id);
-}
-
 VALUE frame_binding_id(VALUE self)
 {
     frame_t *data;
@@ -176,9 +160,8 @@ void initialize_frame(VALUE m_Readapt)
 {
     c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cData);
     rb_define_alloc_func(c_Frame, frame_allocate_s);
-    rb_define_method(c_Frame, "initialize", frame_initialize_m, 4);
+    rb_define_method(c_Frame, "initialize", frame_initialize_m, 3);
     rb_define_method(c_Frame, "file", frame_file, 0);
     rb_define_method(c_Frame, "line", frame_line, 0);
-    rb_define_method(c_Frame, "method_id", frame_method_id, 0);
     rb_define_method(c_Frame, "binding_id", frame_binding_id, 0);
 }
