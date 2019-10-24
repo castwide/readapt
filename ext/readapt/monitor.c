@@ -85,7 +85,10 @@ process_line_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		thread_reference_update_frame(ref, tracepoint);
+		if (firstLineEvent)
+		{
+			thread_reference_update_frame(ref, tracepoint);
+		}
 		ptr = thread_reference_pointer(ref);
 		threadPaused = (ptr->control == id_pause);
 		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
