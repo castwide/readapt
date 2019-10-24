@@ -84,7 +84,7 @@ ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
         }
         else
         {
-            str = rb_any_to_s(rb_funcall(receiver, rb_intern("class"), 0));
+            str = rb_funcall(receiver, rb_intern("to_s"), 0);
         }
         rb_funcall(str, rb_intern("prepend"), 1, rb_str_new_cstr("("));
         rb_funcall(str, rb_intern("concat"), 1, rb_str_new_cstr(")"));
@@ -92,8 +92,9 @@ ID frame_method_id_from_tracearg(rb_trace_arg_t *arg)
     }
     else
     {
-        str = rb_any_to_s(symbol);
-        id = rb_intern(StringValueCStr(str));
+        // str = rb_any_to_s(symbol);
+        // id = rb_intern(StringValueCStr(str));
+        id = SYM2ID(symbol);
     }
     return id;
 }
@@ -112,8 +113,8 @@ VALUE frame_update_from_tracepoint(VALUE frame, VALUE tracepoint)
     tmp = rb_tracearg_path(tracearg);
     file = copy_string(tmp);
     line = NUM2INT(rb_tracearg_lineno(tracearg));
-	method_id = rb_intern("placeholder"); // TODO Get the real one
-	bnd = rb_tracearg_binding(tracearg);
+    method_id = frame_method_id_from_tracearg(tracearg);
+    bnd = rb_tracearg_binding(tracearg);
 	binding_id = NUM2LONG(rb_obj_id(bnd));
 
     TypedData_Get_Struct(frame, frame_t, &frame_type, data);
@@ -132,7 +133,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VA
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
     data->file = copy_string(file);
     data->line = NUM2INT(line);
-    data->method_id = SYM2ID(rb_to_symbol(method_id));
+    data->method_id = SYM2ID(rb_to_symbol(rb_any_to_s(method_id)));
     data->binding_id = NUM2LONG(binding_id);
     return self;
 }
