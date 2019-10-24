@@ -8,7 +8,16 @@ static VALUE threads;
 
 void thread_reference_free(void* data)
 {
-	free(data);
+	thread_reference_t* thr;
+	int i;
+
+	thr = data;
+	for (i = 0; i < thr->depth; i++)
+	{
+		frame_free(thr->frames[i]);
+	}
+	free(thr->frames);
+	free(thr);
 }
 
 size_t thread_reference_size(const void* data)
@@ -107,21 +116,13 @@ void thread_decrement_depth(VALUE ref)
 
 VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
-	// VALUE frm_ary, frame;
-
-	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	// frame = frame_new_from_tracepoint(tracepoint);
-	// rb_ary_unshift(frm_ary, frame);
-	// thread_increment_depth(ref);
-	// return frame;
-
 	thread_reference_t *data;
 	frame_t **tmp;
 	int i;
 
 	data = thread_reference_pointer(ref);
 	tmp = malloc(sizeof(frame_t) * (data->depth + 1));
-	tmp[0] = frame_new_from_tracepoint(tracepoint);
+	tmp[0] = frame_data_from_tracepoint(tracepoint);
 	for (i = 0; i < data->depth; i++)
 	{
 		tmp[i + 1] = data->frames[i];
@@ -133,34 +134,40 @@ VALUE thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 	return Qnil;
 }
 
+static char *copy_string(VALUE string)
+{
+    char *dst;
+    char *src;
+
+    if (string == Qnil)
+    {
+        return NULL;
+    }
+    src = StringValueCStr(string);
+    dst = malloc(sizeof(char) * (strlen(src) + 1));
+    strcpy(dst, src);
+    return dst;
+}
+
 VALUE thread_reference_update_frame(VALUE ref, VALUE tracepoint)
 {
-	// VALUE frm_ary, frame;
-	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	// frame = rb_ary_entry(frm_ary, 0);
-	// if (frame == Qnil)
-	// {
-	// 	frame = frame_new_from_tracepoint(tracepoint);
-	// 	rb_ary_unshift(frm_ary, frame);
-	// 	thread_increment_depth(ref);
-	// }
-	// else
-	// {
-	// 	frame_update_from_tracepoint(frame, tracepoint);
-	// }
-	// return frame;
+	thread_reference_t *data;
+
+	data = thread_reference_pointer(ref);
+	if (data->depth == 0)
+	{
+		thread_reference_push_frame(ref, tracepoint);
+	}
+	else
+	{
+		frame_update_from_tracepoint(tracepoint, data->frames[0]);
+	}
 
 	return Qnil;
 }
 
 VALUE thread_reference_pop_frame(VALUE ref)
 {
-	// VALUE frm_ary;
-
-	// thread_decrement_depth(ref);
-	// frm_ary = rb_funcall(ref, rb_intern("frames"), 0);
-	// return rb_ary_shift(frm_ary);
-
 	thread_reference_t *data;
 	frame_t **tmp;
 	int i;
@@ -174,7 +181,7 @@ VALUE thread_reference_pop_frame(VALUE ref)
 	frame_free(data->frames[0]);
 	free(data->frames);
 	data->frames = tmp;
-	data->depth++;
+	data->depth--;
 
 	return Qnil;
 }
@@ -218,6 +225,7 @@ VALUE frames_m(VALUE self)
 	VALUE frm;
 	int i;
 
+	ary = rb_ary_new();
 	data = thread_reference_pointer(self);
 	for (i = 0; i < data->depth; i++)
 	{

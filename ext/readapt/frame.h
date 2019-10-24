@@ -11,11 +11,9 @@ typedef struct frame_struct {
 } frame_t;
 
 void initialize_frame(VALUE);
-VALUE frame_new_from_tracepoint(VALUE);
-VALUE frame_update_from_tracepoint(VALUE, VALUE);
-
 frame_t *frame_data_from_tracepoint(VALUE);
 VALUE frame_new_from_data(frame_t *);
-void frame_free(void*);
+void frame_update_from_tracepoint(VALUE, frame_t *);
+void frame_free(void *);
 
 #endif

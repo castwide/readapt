@@ -164,6 +164,8 @@ module Readapt
           changed
           thread = self.thread(snapshot.thread_id)
           thread.control = :pause
+          STDERR.puts "Hmm, #{thread.frames.length}"
+          STDERR.puts thread.frames.inspect
           thread.frames.each do |frm|
             @frames[frm.local_id] = frm
           end

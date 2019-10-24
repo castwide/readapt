@@ -2,6 +2,7 @@
 #define THREADS_H_
 
 #include "ruby.h"
+#include "frame.h"
 
 typedef struct thread_reference_struct {
 	long id;

@@ -4,29 +4,43 @@
 
 static VALUE c_Frame;
 
-static void
-frame_free(void* data)
+void frame_free(void *data)
 {
     frame_t *frm = data;
     free(frm->file);
     free(frm);
 }
 
+static char *copy_string(VALUE string)
+{
+    char *dst;
+    char *src;
+
+    if (string == Qnil)
+    {
+        return NULL;
+    }
+    src = StringValueCStr(string);
+    dst = malloc(sizeof(char) * (strlen(src) + 1));
+    strcpy(dst, src);
+    return dst;
+}
+
 static size_t
-frame_size(const void* data)
+frame_size(const void *data)
 {
     return sizeof(frame_t);
 }
 
 static const rb_data_type_t frame_type = {
-	.wrap_struct_name = "frame_data",
-	.function = {
-		.dmark = NULL,
-		.dfree = frame_free,
-		.dsize = frame_size,
-	},
-	.data = NULL,
-	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+    .wrap_struct_name = "frame_data",
+    .function = {
+        .dmark = NULL,
+        .dfree = frame_free,
+        .dsize = frame_size,
+    },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 VALUE frame_allocate_s(VALUE self)
@@ -46,23 +60,39 @@ VALUE frame_allocate()
     return frame_allocate_s(c_Frame);
 }
 
-VALUE frame_new_from_tracepoint(VALUE tracepoint)
+void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
 {
-    VALUE frm;
-
-    frm = frame_allocate();
-    return frame_update_from_tracepoint(frm, tracepoint);
-}
-
-frame_t *frame_data_from_tracepoint(VALUE tracepoint)
-{
-    frame_t *data;
 	VALUE tmp, bnd;
 	rb_trace_arg_t *tracearg;
     char *file;
     int line;
 	ID method_id;
 	long binding_id;
+
+    tracearg = rb_tracearg_from_tracepoint(tracepoint);
+    tmp = rb_tracearg_path(tracearg);
+    file = copy_string(tmp);
+    line = NUM2INT(rb_tracearg_lineno(tracearg));
+    method_id = rb_intern("placeholder");
+    bnd = rb_tracearg_binding(tracearg);
+    binding_id = NUM2LONG(rb_obj_id(bnd));
+
+    free(dst->file);
+    dst->file = file;
+    dst->line = line;
+    dst->method_id = method_id;
+    dst->binding_id = binding_id;
+}
+
+frame_t *frame_data_from_tracepoint(VALUE tracepoint)
+{
+    frame_t *data;
+    VALUE tmp, bnd;
+    rb_trace_arg_t *tracearg;
+    char *file;
+    int line;
+    ID method_id;
+    long binding_id;
 
     data = malloc(sizeof(frame_t));
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
@@ -71,7 +101,7 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     line = NUM2INT(rb_tracearg_lineno(tracearg));
     method_id = rb_intern("placeholder");
     bnd = rb_tracearg_binding(tracearg);
-	binding_id = NUM2LONG(rb_obj_id(bnd));
+    binding_id = NUM2LONG(rb_obj_id(bnd));
 
     data->file = file;
     data->line = line;
@@ -79,26 +109,6 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     data->binding_id = binding_id;
 
     return data;
-}
-
-VALUE frame_new_from_data(frame_t *data)
-{
-    return TypedData_Wrap_Struct(c_Frame, &frame_type, data);
-}
-
-static char* copy_string(VALUE string)
-{
-    char *dst;
-    char *src;
-
-    if (string == Qnil)
-    {
-        return NULL;
-    }
-    src = StringValueCStr(string);
-    dst = malloc(sizeof(char) * (strlen(src) + 1));
-    strcpy(dst, src);
-    return dst;
 }
 
 VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VALUE binding_id)
@@ -110,6 +120,21 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE method_id, VA
     data->method_id = SYM2ID(rb_to_symbol(rb_any_to_s(method_id)));
     data->binding_id = NUM2LONG(binding_id);
     return self;
+}
+
+VALUE frame_new_from_data(frame_t *data)
+{
+    VALUE obj;
+
+    obj = frame_allocate();
+    frame_initialize_m(
+        obj,
+        rb_str_new_cstr(data->file),
+        INT2NUM(data->line),
+        ID2SYM(data->method_id),
+        LONG2NUM(data->binding_id));
+
+    return obj;
 }
 
 VALUE frame_file(VALUE self)
