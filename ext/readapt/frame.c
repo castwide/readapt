@@ -61,21 +61,26 @@ VALUE frame_allocate()
 
 void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
 {
-	VALUE tmp, bnd;
+	VALUE path, bnd;
 	rb_trace_arg_t *tracearg;
     char *file;
+    char *tmp;
     int line;
 	long binding_id;
 
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
-    tmp = rb_tracearg_path(tracearg);
-    file = copy_string(tmp);
+    path = rb_tracearg_path(tracearg);
     line = NUM2INT(rb_tracearg_lineno(tracearg));
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
 
-    free(dst->file);
-    dst->file = file;
+    tmp = StringValueCStr(path);
+    if (strcmp(dst->file, tmp) != 0)
+    {
+        file = malloc((strlen(tmp) + 1) * sizeof(char));
+        free(dst->file);
+        dst->file = file;
+    }
     dst->line = line;
     dst->binding_id = binding_id;
 }
