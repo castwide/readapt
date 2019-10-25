@@ -135,7 +135,7 @@ VALUE frame_new_from_data(frame_t *data)
     return obj;
 }
 
-VALUE frame_file(VALUE self)
+VALUE frame_file_m(VALUE self)
 {
     frame_t *data;
     VALUE str = Qnil;
@@ -149,14 +149,14 @@ VALUE frame_file(VALUE self)
     return str;
 }
 
-VALUE frame_line(VALUE self)
+VALUE frame_line_m(VALUE self)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
     return INT2NUM(data->line);
 }
 
-VALUE frame_binding_id(VALUE self)
+VALUE frame_binding_id_m(VALUE self)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
@@ -168,7 +168,7 @@ void initialize_frame(VALUE m_Readapt)
     c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cData);
     rb_define_alloc_func(c_Frame, frame_allocate_s);
     rb_define_method(c_Frame, "initialize", frame_initialize_m, 3);
-    rb_define_method(c_Frame, "file", frame_file, 0);
-    rb_define_method(c_Frame, "line", frame_line, 0);
-    rb_define_method(c_Frame, "binding_id", frame_binding_id, 0);
+    rb_define_method(c_Frame, "file", frame_file_m, 0);
+    rb_define_method(c_Frame, "line", frame_line_m, 0);
+    rb_define_method(c_Frame, "binding_id", frame_binding_id_m, 0);
 }
