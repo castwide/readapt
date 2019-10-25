@@ -8,6 +8,9 @@ static VALUE c_Frame;
 void frame_free(void *data)
 {
     frame_t *frm = data;
+
+    fprintf(stderr, "Freeing a frame\n");
+
     free(frm->file);
     free(frm);
 }
@@ -43,34 +46,6 @@ VALUE frame_allocate_s(VALUE self)
 VALUE frame_allocate()
 {
     return frame_allocate_s(c_Frame);
-}
-
-void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
-{
-	VALUE path, bnd;
-	rb_trace_arg_t *tracearg;
-    char *tmp;
-    int line;
-	long binding_id;
-
-    tracearg = rb_tracearg_from_tracepoint(tracepoint);
-    path = rb_tracearg_path(tracearg);
-    line = NUM2INT(rb_tracearg_lineno(tracearg));
-    bnd = rb_tracearg_binding(tracearg);
-    binding_id = NUM2LONG(rb_obj_id(bnd));
-
-    if (path == Qnil)
-    {
-        tmp = NULL;
-    }
-    else
-    {
-        tmp = normalize_path_new_cstr(StringValueCStr(path));
-    }
-    free(dst->file);
-    dst->file = tmp;
-    dst->line = line;
-    dst->binding_id = binding_id;
 }
 
 frame_t *frame_data_from_tracepoint(VALUE tracepoint)
