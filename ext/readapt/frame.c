@@ -67,16 +67,8 @@ void frame_update_from_tracepoint(VALUE tracepoint, frame_t *dst)
     {
         tmp = normalize_path_new_cstr(StringValueCStr(path));
     }
-    
-    if (strcmp(dst->file, tmp) != 0)
-    {
-        free(dst->file);
-        dst->file = tmp;
-    }
-    else
-    {
-        free(tmp);
-    }
+    free(dst->file);
+    dst->file = tmp;
     dst->line = line;
     dst->binding_id = binding_id;
 }
