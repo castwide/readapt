@@ -103,23 +103,10 @@ void thread_pause()
 	}
 }
 
-void thread_increment_depth(VALUE ref)
-{
-	thread_reference_t *data;
-	data = thread_reference_pointer(ref);
-	data->depth++;
-}
-
-void thread_decrement_depth(VALUE ref)
-{
-	thread_reference_t *data;
-	data = thread_reference_pointer(ref);
-	data->depth--;
-}
-
 void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
+	frame_t *frm;
 
 	data = thread_reference_pointer(ref);
 	if (data->depth == data->capacity)
@@ -128,6 +115,11 @@ void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
 		data->frames = realloc(data->frames, sizeof(frame_t) * data->capacity);
 	}
 	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
+	// frm = malloc(sizeof(frame_t));
+	// frm->file = NULL;
+	// frm->line = 0;
+	// frm->binding_id = 0;
+	// data->frames[data->depth] = frm;
 	data->depth++;
 }
 
