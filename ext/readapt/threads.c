@@ -8,7 +8,7 @@
 static VALUE c_Thread;
 static VALUE threads;
 
-void thread_reference_free(void* data)
+static void thread_reference_free(void* data)
 {
 	thread_reference_t* thr;
 
@@ -18,7 +18,7 @@ void thread_reference_free(void* data)
 	free(thr);
 }
 
-size_t thread_reference_size(const void* data)
+static size_t thread_reference_size(const void* data)
 {
 	return sizeof(thread_reference_t);
 }
@@ -34,7 +34,7 @@ static const rb_data_type_t thread_reference_type = {
 	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
-VALUE thread_reference_new(VALUE thr)
+static VALUE thread_reference_new(VALUE thr)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
@@ -106,7 +106,7 @@ static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoi
 	stack_push(data->frames, frm);
 }
 
-void clear_frames(thread_reference_t *data)
+static void clear_frames(thread_reference_t *data)
 {
 	int checking;
 	frame_t *frm;
@@ -179,7 +179,7 @@ void thread_clear()
 	rb_funcall(threads, rb_intern("clear"), 0);
 }
 
-VALUE thread_allocate_s(VALUE self)
+static VALUE thread_allocate_s(VALUE self)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	data->control = rb_intern("continue");
@@ -190,28 +190,28 @@ VALUE thread_allocate_s(VALUE self)
 	return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
 
-VALUE thread_all_s(VALUE self)
+static VALUE thread_all_s(VALUE self)
 {
 	return rb_funcall(threads, rb_intern("values"), 0);
 }
 
-VALUE thread_find_s(VALUE self, VALUE id)
+static VALUE thread_find_s(VALUE self, VALUE id)
 {
 	return thread_reference_id(id);
 }
 
-VALUE thread_include_s(VALUE self, VALUE id)
+static VALUE thread_include_s(VALUE self, VALUE id)
 {
 	return rb_funcall(threads, rb_intern("include?"), 1, id);
 }
 
-VALUE thread_id_m(VALUE self)
+static VALUE thread_id_m(VALUE self)
 {
 	thread_reference_t *data = thread_reference_pointer(self);
 	return LONG2NUM(data->id);
 }
 
-VALUE frames_m(VALUE self)
+static VALUE frames_m(VALUE self)
 {
 	thread_reference_t *data;
 	VALUE ary;
