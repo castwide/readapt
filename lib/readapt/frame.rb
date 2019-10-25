@@ -51,6 +51,6 @@ module Readapt
       STDERR.puts "[#{e.class}] #{e.message}"
       ObjectSpace._id2ref(nil.object_id)
     end
-    NULL_FRAME = Frame.new("", 0, nil.object_id)
+    NULL_FRAME = Frame.new("", 0, nil.object_id, 0)
   end
 end

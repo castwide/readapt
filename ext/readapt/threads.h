@@ -3,14 +3,14 @@
 
 #include "ruby.h"
 #include "frame.h"
+#include "stack.h"
 
 typedef struct thread_reference_struct {
 	long id;
-	int depth;
-	int capacity;
 	int cursor;
 	ID control;
-	frame_t **frames;
+	stack_t *frames;
+	stack_t *calls;
 } thread_reference_t;
 
 void initialize_threads(VALUE);

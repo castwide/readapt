@@ -14,11 +14,8 @@ void thread_reference_free(void* data)
 	int i;
 
 	thr = data;
-	for (i = 0; i < thr->depth; i++)
-	{
-		frame_free(thr->frames[i]);
-	}
-	free(thr->frames);
+	stack_free(thr->calls);
+	stack_free(thr->frames);
 	free(thr);
 }
 
@@ -43,11 +40,10 @@ VALUE thread_reference_new(VALUE thr)
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
 	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
-	data->depth = 0;
-	data->capacity = FRAME_CAPACITY;
 	data->cursor = 0;
 	data->control = rb_intern("continue");
-	data->frames = malloc(sizeof(frame_t) * data->capacity);
+	data->frames = stack_alloc(sizeof(frame_t), frame_free);
+	data->calls = stack_alloc(sizeof(frame_t), NULL);
 	return obj;
 }
 
@@ -103,40 +99,71 @@ void thread_pause()
 	}
 }
 
-static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoint)
-{
-	if (data->depth == data->capacity)
-	{
-		data->capacity += FRAME_CAPACITY;
-		data->frames = realloc(data->frames, sizeof(frame_t) * data->capacity);
-	}
-	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
-	data->depth++;
-}
+// static void thread_reference_pop_frame(thread_reference_t *data)
+// {
+// 	if (data->depth > 0)
+// 	{
+// 		frame_free(data->frames[data->depth - 1]);
+// 		data->frames[data->depth - 1] = NULL;
+// 		data->depth--;
+// 	}
+// }
 
-static void thread_reference_pop_frame(thread_reference_t *data)
-{
-	if (data->depth > 0)
-	{
-		frame_free(data->frames[data->depth - 1]);
-		data->frames[data->depth - 1] = NULL;
-		data->depth--;
-	}
-}
+// static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoint)
+// {
+// 	frame_t *frm;
+
+// 	if (data->depth == data->capacity)
+// 	{
+// 		data->capacity += FRAME_CAPACITY;
+// 		data->frames = realloc(data->frames, sizeof(frame_t) * data->capacity);
+// 	}
+
+// 	frm = frame_data_from_tracepoint(tracepoint);
+// 	if (data->depth > 0 && data->frames[data->depth - 1]->binding_id == frm->binding_id)
+// 	{
+// 		thread_reference_pop_frame(data);
+// 	}
+// 	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
+// 	data->depth++;
+// }
 
 thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
+	frame_t *frm;
+	int checking;
 
 	data = thread_reference_pointer(ref);
-	if (data->depth > 0)
+	checking = 1;
+	// if (data->depth > 0)
+	// {
+	// 	// data->frames[data->depth - 1]->stack--;
+	// 	while (data->depth > 0 && data->frames[data->depth - 1]->stack < 1)
+	// 	{
+	// 		thread_reference_pop_frame(data);
+	// 	}
+	// }
+
+	while (checking)
 	{
-		if (data->frames[data->depth - 1]->stack == 0)
+		if (data->frames->size == 0)
 		{
-			thread_reference_pop_frame(data);
+			checking = 0;
+		}
+		else
+		{
+			frm = stack_peek(data->frames);
+			if (frm->stack == 0)
+			{
+				stack_pop(data->frames);
+			}
+			else
+			{
+				checking = 0;
+			}
 		}
 	}
-
 	thread_reference_push_frame(data, tracepoint);
 
 	return data;
@@ -145,21 +172,48 @@ thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
 void thread_reference_push_stack(VALUE ref)
 {
 	thread_reference_t *data;
+	frame_t *frame;
+
 	data = thread_reference_pointer(ref);
-	if (data->depth > 0)
-	{
-		data->frames[data->depth - 1]->stack++;
-	}
+	// if (data->depth > 0)
+	// {
+	// 	// fprintf(stderr, "%s:%i %ld up\n", data->frames[data->depth - 1]->file, data->frames[data->depth - 1]->line, data->frames[data->depth - 1]->binding_id);
+	// 	data->frames[data->depth - 1]->stack++;
+	// }
+	frame = stack_peek(data->frames);
+	stack_push(data->calls, stack_peek(data->frames));
+	frame->stack++;
 }
 
 void thread_reference_pop_stack(VALUE ref)
 {
 	thread_reference_t *data;
+	frame_t *frame;
+
 	data = thread_reference_pointer(ref);
-	if (data->depth > 0)
-	{
-		data->frames[data->depth - 1]->stack--;
-	}
+	// if (data->depth > 0)
+	// {
+	// 	// if (data->depth > 1)
+	// 	// {
+	// 	// 	data->frames[data->depth - 2]->stack--;
+	// 	// }
+	// 	// else
+	// 	// {
+	// 		data->frames[data->depth - 1]->stack--;
+	// 	// }
+	// 	// fprintf(stderr, "%s:%i %ld down\n", data->frames[data->depth - 1]->file, data->frames[data->depth - 1]->line, data->frames[data->depth - 1]->binding_id);
+	// 	// if (data->frames[data->depth - 1]->stack <= 1)
+	// 	// {
+	// 	// 	thread_reference_pop_frame(data);
+	// 	// }
+	// 	// else
+	// 	// {
+	// 		// data->frames[data->depth - 1]->stack--;
+	// 	// }
+	// }
+	frame = stack_peek(data->calls);
+	frame->stack--;
+	stack_pop(data->calls);
 }
 
 void thread_clear()
@@ -171,10 +225,9 @@ VALUE thread_allocate_s(VALUE self)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	data->control = rb_intern("continue");
-	data->depth = 0;
 	data->cursor = 0;
-	data->capacity = FRAME_CAPACITY;
-	data->frames = malloc(sizeof(frame_t) * data->capacity);
+	data->frames = stack_alloc(sizeof(frame_t), frame_free);
+	data->calls = stack_alloc(sizeof(frame_t), NULL);
 	data->id = 0;
 	return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
@@ -209,9 +262,9 @@ VALUE frames_m(VALUE self)
 
 	ary = rb_ary_new();
 	data = thread_reference_pointer(self);
-	for (i = data->depth - 1; i >= 0; i--)
+	for (i = data->frames->size - 1; i >= 0; i--)
 	{
-		frm = frame_new_from_data(data->frames[i]);
+		frm = frame_new_from_data(data->frames->elements[i]);
 		rb_ary_push(ary, frm);
 	}
 

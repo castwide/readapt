@@ -98,7 +98,7 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     return data;
 }
 
-VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
+VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id, VALUE stack)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
@@ -112,7 +112,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
     }
     data->line = NUM2INT(line);
     data->binding_id = NUM2LONG(binding_id);
-    data->stack = 0;
+    data->stack = NUM2INT(stack);
     return self;
 }
 
@@ -125,7 +125,8 @@ VALUE frame_new_from_data(frame_t *data)
         obj,
         rb_str_new_cstr(data->file),
         INT2NUM(data->line),
-        LONG2NUM(data->binding_id));
+        LONG2NUM(data->binding_id),
+        INT2NUM(data->stack));
 
     return obj;
 }
@@ -158,12 +159,20 @@ VALUE frame_binding_id_m(VALUE self)
     return LONG2NUM(data->binding_id);
 }
 
+VALUE frame_stack_m(VALUE self)
+{
+    frame_t *data;
+    TypedData_Get_Struct(self, frame_t, &frame_type, data);
+    return INT2NUM(data->stack);
+}
+
 void initialize_frame(VALUE m_Readapt)
 {
     c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cData);
     rb_define_alloc_func(c_Frame, frame_allocate_s);
-    rb_define_method(c_Frame, "initialize", frame_initialize_m, 3);
+    rb_define_method(c_Frame, "initialize", frame_initialize_m, 4);
     rb_define_method(c_Frame, "file", frame_file_m, 0);
     rb_define_method(c_Frame, "line", frame_line_m, 0);
     rb_define_method(c_Frame, "binding_id", frame_binding_id_m, 0);
+    rb_define_method(c_Frame, "stack", frame_stack_m, 0);
 }
