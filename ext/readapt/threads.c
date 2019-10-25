@@ -103,53 +103,62 @@ void thread_pause()
 	}
 }
 
-void thread_reference_push_frame(VALUE ref, VALUE tracepoint)
+static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoint)
 {
-	thread_reference_t *data;
-	frame_t *frm;
-
-	data = thread_reference_pointer(ref);
 	if (data->depth == data->capacity)
 	{
 		data->capacity += FRAME_CAPACITY;
 		data->frames = realloc(data->frames, sizeof(frame_t) * data->capacity);
 	}
 	data->frames[data->depth] = frame_data_from_tracepoint(tracepoint);
-	// frm = malloc(sizeof(frame_t));
-	// frm->file = NULL;
-	// frm->line = 0;
-	// frm->binding_id = 0;
-	// data->frames[data->depth] = frm;
 	data->depth++;
 }
 
-frame_t *thread_reference_update_frame(VALUE ref, VALUE tracepoint)
+static void thread_reference_pop_frame(thread_reference_t *data)
 {
-	thread_reference_t *data;
-
-	data = thread_reference_pointer(ref);
-	if (data->depth == 0)
+	if (data->depth > 0)
 	{
-		thread_reference_push_frame(ref, tracepoint);
+		frame_free(data->frames[data->depth - 1]);
+		data->frames[data->depth - 1] = NULL;
+		data->depth--;
 	}
-	else
-	{
-		frame_update_from_tracepoint(tracepoint, data->frames[data->depth - 1]);
-	}
-
-	return data->frames[data->depth - 1];
 }
 
-void thread_reference_pop_frame(VALUE ref)
+thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
 {
 	thread_reference_t *data;
 
 	data = thread_reference_pointer(ref);
 	if (data->depth > 0)
 	{
-		frame_free(data->frames[data->depth - 1]);
-		data->frames[data->depth - 1] = NULL;
-		data->depth--;
+		if (data->frames[data->depth - 1]->stack == 0)
+		{
+			thread_reference_pop_frame(data);
+		}
+	}
+
+	thread_reference_push_frame(data, tracepoint);
+
+	return data;
+}
+
+void thread_reference_push_stack(VALUE ref)
+{
+	thread_reference_t *data;
+	data = thread_reference_pointer(ref);
+	if (data->depth > 0)
+	{
+		data->frames[data->depth - 1]->stack++;
+	}
+}
+
+void thread_reference_pop_stack(VALUE ref)
+{
+	thread_reference_t *data;
+	data = thread_reference_pointer(ref);
+	if (data->depth > 0)
+	{
+		data->frames[data->depth - 1]->stack--;
 	}
 }
 

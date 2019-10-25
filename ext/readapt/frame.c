@@ -93,6 +93,7 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     data->file = file;
     data->line = line;
     data->binding_id = binding_id;
+    data->stack = 0;
 
     return data;
 }
@@ -111,6 +112,7 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding_id)
     }
     data->line = NUM2INT(line);
     data->binding_id = NUM2LONG(binding_id);
+    data->stack = 0;
     return self;
 }
 

@@ -83,8 +83,8 @@ process_line_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		frame = thread_reference_update_frame(ref, tracepoint);
-		ptr = thread_reference_pointer(ref);
+		ptr = thread_reference_update_frames(ref, tracepoint);
+		frame = ptr->frames[ptr->depth - 1];
 		threadPaused = (ptr->control == id_pause);
 		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
 		{
@@ -132,7 +132,7 @@ process_call_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		thread_reference_push_frame(ref, tracepoint);
+		thread_reference_push_stack(ref);
 	}
 }
 
@@ -144,7 +144,7 @@ process_return_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		thread_reference_pop_frame(ref);
+		thread_reference_pop_stack(ref);
 	}
 }
 
@@ -159,7 +159,7 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 	if (here != Qnil)
 	{
 		ref = thread_add_reference(here);
-		thread_reference_push_frame(ref, tracepoint);
+		// thread_reference_push_frame(ref, tracepoint);
 		ptr = thread_reference_pointer(ref);
 		monitor_debug(
 			"",

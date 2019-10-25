@@ -7,6 +7,7 @@ typedef struct frame_struct {
     char *file;
     int line;
     long binding_id;
+    int stack;
 } frame_t;
 
 void initialize_frame(VALUE);
