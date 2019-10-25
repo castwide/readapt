@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "stack.h"
 
 #define STACK_CAPACITY 20
@@ -71,7 +72,6 @@ void stack_free(stack_t *stack)
     {
         for (i = 0; i < stack->size; i++)
         {
-            {
             stack->free_func(stack->elements[i]);
         }
     }

@@ -5,7 +5,7 @@ RSpec.describe Readapt::Frame do
       binding.object_id
     }
     id = block.call
-    frame = Readapt::Frame.new(nil, 0, id)
+    frame = Readapt::Frame.new(nil, 0, id, 0)
     result = frame.evaluate('var')
     expect(result).to eq(var.inspect)
   end

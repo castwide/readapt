@@ -1,7 +1,7 @@
 RSpec.describe Readapt::Monitor do
   it 'starts and stops' do
     expect {
-      Readapt::Monitor.start nil do
+      Readapt::Monitor.start "" do
         nil
       end
       x = 1

@@ -37,15 +37,15 @@ static int match_step(thread_reference_t *ptr)
 	{
 		return 0;
 	}
-	else if (ptr->control == rb_intern("next") && ptr->cursor >= ptr->depth)
+	else if (ptr->control == rb_intern("next") && ptr->cursor >= ptr->frames->size)
 	{
 		return 1;
 	}
-	else if (ptr->control == rb_intern("step_in") && ptr->cursor < ptr->depth)
+	else if (ptr->control == rb_intern("step_in") && ptr->cursor < ptr->frames->size)
 	{
 		return 1;
 	}
-	else if (ptr->control == rb_intern("step_out") && ptr->cursor > ptr->depth)
+	else if (ptr->control == rb_intern("step_out") && ptr->cursor > ptr->frames->size)
 	{
 		return 1;
 	}
@@ -66,7 +66,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 		INT2NUM(line),
 		Qnil,
 		ID2SYM(event),
-		INT2NUM(ptr->depth)
+		INT2NUM(ptr->frames->size)
 	);
 	rb_io_flush(rb_stdout);
 	rb_io_flush(rb_stderr);
@@ -74,7 +74,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 	result = SYM2ID(rb_funcall(snapshot, rb_intern("control"), 0));
 	if (event != rb_intern("initialize"))
 	{
-		ptr->cursor = ptr->depth;
+		ptr->cursor = ptr->frames->size;
 		ptr->control = result;
 	}
 	return result;
@@ -95,7 +95,7 @@ process_line_event(VALUE tracepoint, void *data)
 		tracepoint_info(tracepoint);
 
 		ptr = thread_reference_update_frames(ref, tracepoint);
-		frame = ptr->frames[ptr->depth - 1];
+		frame = stack_peek(ptr->frames);
 		threadPaused = (ptr->control == id_pause);
 		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
 		{
