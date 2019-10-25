@@ -106,13 +106,11 @@ static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoi
 	stack_push(data->frames, frm);
 }
 
-thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
+void clear_frames(thread_reference_t *data)
 {
-	thread_reference_t *data;
-	frame_t *frm;
 	int checking;
+	frame_t *frm;
 
-	data = thread_reference_pointer(ref);
 	checking = 1;
 	while (checking)
 	{
@@ -133,6 +131,15 @@ thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
 			}
 		}
 	}
+
+}
+
+thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
+{
+	thread_reference_t *data;
+
+	data = thread_reference_pointer(ref);
+	clear_frames(data);
 	thread_reference_push_frame(data, tracepoint);
 
 	return data;
@@ -145,8 +152,11 @@ void thread_reference_push_stack(VALUE ref)
 
 	data = thread_reference_pointer(ref);
 	frame = stack_peek(data->frames);
-	stack_push(data->calls, stack_peek(data->frames));
-	frame->stack++;
+	if (frame)
+	{
+		stack_push(data->calls, frame);
+		frame->stack++;
+	}
 }
 
 void thread_reference_pop_stack(VALUE ref)
@@ -161,6 +171,7 @@ void thread_reference_pop_stack(VALUE ref)
 		frame->stack--;
 		stack_pop(data->calls);
 	}
+	clear_frames(data);
 }
 
 void thread_clear()
