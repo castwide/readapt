@@ -85,14 +85,7 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     data = malloc(sizeof(frame_t));
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
     tmp = rb_tracearg_path(tracearg);
-    if (tmp == Qnil)
-    {
-        file = NULL;
-    }
-    else
-    {
-        file = normalize_path_new_cstr(StringValueCStr(tmp));
-    }
+    file = (tmp == Qnil ? NULL : normalize_path_new_cstr(StringValueCStr(tmp)));
     line = NUM2INT(rb_tracearg_lineno(tracearg));
     bnd = rb_tracearg_binding(tracearg);
     binding_id = NUM2LONG(rb_obj_id(bnd));
