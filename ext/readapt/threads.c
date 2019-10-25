@@ -3,8 +3,6 @@
 #include "threads.h"
 #include "frame.h"
 
-#define FRAME_CAPACITY 20;
-
 static VALUE c_Thread;
 static VALUE threads;
 
