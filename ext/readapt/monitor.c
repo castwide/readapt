@@ -22,15 +22,6 @@ static ID id_continue;
 static ID id_pause;
 static ID id_entry;
 
-static void tracepoint_info(VALUE tracepoint)
-{
-	VALUE sp = rb_str_new_cstr(" ");
-
-	rb_funcall(rb_stderr, rb_intern("print"), 2, rb_funcall(tracepoint, rb_intern("path"), 0), sp);
-	rb_funcall(rb_stderr, rb_intern("print"), 2, rb_funcall(tracepoint, rb_intern("lineno"), 0), sp);
-	rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_funcall(tracepoint, rb_intern("event"), 0));
-}
-
 static int match_step(thread_reference_t *ptr)
 {
 	if (ptr->control == id_continue)
@@ -92,8 +83,6 @@ process_line_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		tracepoint_info(tracepoint);
-
 		ptr = thread_reference_update_frames(ref, tracepoint);
 		frame = stack_peek(ptr->frames);
 		threadPaused = (ptr->control == id_pause);
@@ -143,7 +132,6 @@ process_call_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		tracepoint_info(tracepoint);
 		thread_reference_push_stack(ref);
 	}
 }
@@ -156,7 +144,6 @@ process_return_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		tracepoint_info(tracepoint);
 		thread_reference_pop_stack(ref);
 	}
 }
