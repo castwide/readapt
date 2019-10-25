@@ -9,8 +9,6 @@ void frame_free(void *data)
 {
     frame_t *frm = data;
 
-    fprintf(stderr, "Freeing a frame\n");
-
     free(frm->file);
     free(frm);
 }
