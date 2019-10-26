@@ -5,7 +5,7 @@
 
 /**
  * Allocate a stack. The `elem_size` is the expected size of each element,
- * e.g., `sizeof(some_struct). The optional `free_func` argument is a pointer
+ * e.g., `sizeof(some_struct)`. The optional `free_func` argument is a pointer
  * to a function that will be called when an element is popped off the stack.
  */
 stack_t *stack_alloc(size_t elem_size, void (*free_func)(void *))
@@ -14,8 +14,7 @@ stack_t *stack_alloc(size_t elem_size, void (*free_func)(void *))
     s->elem_size = elem_size;
     s->free_func = free_func;
     s->size = 0;
-    s->capacity = STACK_CAPACITY;
-    s->elements = malloc(s->elem_size * s->capacity);
+    s->capacity = 0;
     return s;
 }
 
@@ -26,8 +25,16 @@ void stack_push(stack_t *stack, void *element)
 {
     if (stack->size == stack->capacity)
     {
-        stack->capacity += STACK_CAPACITY;
-        stack->elements = realloc(stack->elements, stack->elem_size * stack->capacity);
+        if (stack->capacity == 0)
+        {
+            stack->capacity = STACK_CAPACITY;
+            stack->elements = malloc(stack->elem_size * stack->capacity);
+        }
+        else
+        {
+            stack->capacity += STACK_CAPACITY;
+            stack->elements = realloc(stack->elements, stack->elem_size * stack->capacity);
+        }
     }
     stack->elements[stack->size] = element;
     stack->size++;
