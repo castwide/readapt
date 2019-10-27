@@ -3,6 +3,6 @@
 
 #include "ruby.h"
 
-void inspector_inspect();
+void inspector_inspect(VALUE);
 
 #endif
