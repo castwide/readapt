@@ -20,7 +20,7 @@ module Readapt
     end
 
     def local_id
-      binding_id
+      frame_binding.object_id
     end
 
     def locals
@@ -43,14 +43,14 @@ module Readapt
 
     private
 
-    def frame_binding
-      obj = ObjectSpace._id2ref(binding_id)
-      raise RangeError, "Frame contains #{obj.class} instead of Binding" unless obj.is_a?(Binding)
-      obj
-    rescue RangeError => e
-      STDERR.puts "[#{e.class}] #{e.message}"
-      ObjectSpace._id2ref(nil.object_id)
-    end
-    NULL_FRAME = Frame.new("", 0, nil.object_id, 0)
+    # def frame_binding
+    #   obj = ObjectSpace._id2ref(binding_id)
+    #   raise RangeError, "Frame contains #{obj.class} instead of Binding" unless obj.is_a?(Binding)
+    #   obj
+    # rescue RangeError => e
+    #   STDERR.puts "[#{e.class}] #{e.message}"
+    #   ObjectSpace._id2ref(nil.object_id)
+    # end
+    NULL_FRAME = Frame.new("", 0, nil)
   end
 end

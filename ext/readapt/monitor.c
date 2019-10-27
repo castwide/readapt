@@ -3,6 +3,7 @@
 #include "threads.h"
 #include "normalize.h"
 #include "breakpoints.h"
+#include "inspector.h"
 
 static VALUE readapt;
 static VALUE m_Monitor;
@@ -50,14 +51,12 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 
 	bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
 	bid = rb_funcall(bind, rb_intern("object_id"), 0);
-	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 7,
+	inspector_inspect(ptr);
+	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		LONG2NUM(ptr->id),
-		bid,
 		rb_str_new_cstr(file),
 		INT2NUM(line),
-		Qnil,
 		ID2SYM(event),
-		INT2NUM(ptr->frames->size)
 	);
 	rb_io_flush(rb_stdout);
 	rb_io_flush(rb_stderr);
@@ -76,24 +75,37 @@ process_line_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
 	thread_reference_t *ptr;
+	rb_trace_arg_t *arg;
 	int threadPaused;
 	ID dapEvent;
-	frame_t *frame;
+	// frame_t *frame;
+	VALUE tmp;
+	char *tp_file;
+	long tp_line;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		ptr = thread_reference_update_frames(ref, tracepoint);
-		frame = stack_peek(ptr->frames);
+		ptr = thread_reference_pointer(ref);
+		thread_reference_push_frame(ptr, tracepoint);
+		// ptr = thread_reference_update_frames(ref, tracepoint);
+		// frame = stack_peek(ptr->frames);
 		threadPaused = (ptr->control == id_pause);
+		arg = rb_tracearg_from_tracepoint(tracepoint);
+		tmp = rb_tracearg_path(arg);
+		tp_file = StringValueCStr(tmp);
+		tmp = rb_tracearg_lineno(arg);
+		tp_line = NUM2LONG(tmp);
+
 		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
 		{
 			return;
 		}
+		
 		dapEvent = id_continue;
 		if (!firstLineEvent)
 		{
-			if (strcmp(frame->file, entryFile) == 0)
+			if (strcmp(tp_file, entryFile) == 0)
 			{
 				firstLineEvent = 1;
 				ptr->control = rb_intern("entry");
@@ -108,7 +120,7 @@ process_line_event(VALUE tracepoint, void *data)
 		{
 			dapEvent = rb_intern("step");
 		}
-		else if (breakpoints_match(frame->file, frame->line))
+		else if (breakpoints_match(tp_file, tp_line))
 		{
 			dapEvent = rb_intern("breakpoint");
 		}
@@ -119,7 +131,7 @@ process_line_event(VALUE tracepoint, void *data)
 
 		if (dapEvent != id_continue)
 		{
-			monitor_debug(frame->file, frame->line, tracepoint, ptr, dapEvent);
+			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
 	}
 }

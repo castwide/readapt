@@ -8,7 +8,7 @@ module Readapt
         set_body({
           stackFrames: frames.map do |frm|
             {
-              name: "(#{frm.binding_id}:#{frm.stack})",
+              name: "(#{frm.frame_binding.object_id})",
               source: {
                 name: frm.location.file ? File.basename(frm.location.file) : nil,
                 path: frm.location.file

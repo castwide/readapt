@@ -16,6 +16,11 @@ module Readapt
       end
     end
 
+    def object
+      STDERR.puts "Getting #{id}"
+      ObjectSpace._id2ref(id)
+    end
+
     # def frames
     #   @frames ||= []
     # end

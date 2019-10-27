@@ -3,6 +3,6 @@
 
 #include "ruby.h"
 
-void inspector_inspect(VALUE);
+void inspector_inspect(thread_reference_t *);
 
 #endif

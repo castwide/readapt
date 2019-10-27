@@ -2,6 +2,7 @@
 #include "ruby/debug.h"
 #include "threads.h"
 #include "frame.h"
+#include "inspector.h"
 
 static VALUE c_Thread;
 static VALUE threads;
@@ -96,7 +97,7 @@ void thread_pause()
 	}
 }
 
-static void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoint)
+void thread_reference_push_frame(thread_reference_t *data, VALUE tracepoint)
 {
 	frame_t *frm;
 
@@ -132,16 +133,16 @@ static void clear_frames(thread_reference_t *data)
 
 }
 
-thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
-{
-	thread_reference_t *data;
+// thread_reference_t *thread_reference_update_frames(VALUE ref, VALUE tracepoint)
+// {
+// 	thread_reference_t *data;
 
-	data = thread_reference_pointer(ref);
-	clear_frames(data);
-	thread_reference_push_frame(data, tracepoint);
+// 	data = thread_reference_pointer(ref);
+// 	clear_frames(data);
+// 	thread_reference_push_frame(data, tracepoint);
 
-	return data;
-}
+// 	return data;
+// }
 
 void thread_reference_push_stack(VALUE ref)
 {
@@ -215,13 +216,19 @@ static VALUE frames_m(VALUE self)
 	VALUE ary;
 	VALUE frm;
 	int i;
+	frame_t *fd;
 
 	ary = rb_ary_new();
 	data = thread_reference_pointer(self);
 	for (i = data->frames->size - 1; i >= 0; i--)
 	{
-		frm = frame_new_from_data(data->frames->elements[i]);
-		rb_ary_push(ary, frm);
+		fd = data->frames->elements[i];
+		// TODO This condition should probably not be necessary.
+		if (fd->binding != Qnil)
+		{
+			frm = frame_new_from_data(fd);
+			rb_ary_push(ary, frm);
+		}
 	}
 
 	return ary;
