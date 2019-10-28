@@ -3,7 +3,6 @@
 #include "threads.h"
 #include "normalize.h"
 #include "breakpoints.h"
-#include "inspector.h"
 
 static VALUE readapt;
 static VALUE m_Monitor;
@@ -29,15 +28,15 @@ static int match_step(thread_reference_t *ptr)
 	{
 		return 0;
 	}
-	else if (ptr->control == rb_intern("next") && ptr->cursor >= ptr->frames->size)
+	else if (ptr->control == rb_intern("next") && ptr->cursor >= ptr->depth)
 	{
 		return 1;
 	}
-	else if (ptr->control == rb_intern("step_in") && ptr->cursor < ptr->frames->size)
+	else if (ptr->control == rb_intern("step_in") && ptr->cursor < ptr->depth)
 	{
 		return 1;
 	}
-	else if (ptr->control == rb_intern("step_out") && ptr->cursor > ptr->frames->size)
+	else if (ptr->control == rb_intern("step_out") && ptr->cursor > ptr->depth)
 	{
 		return 1;
 	}
@@ -49,7 +48,10 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 {
 	VALUE snapshot, result;
 
-	inspector_inspect(ptr);
+	// bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
+	// bid = rb_funcall(bind, rb_intern("object_id"), 0);
+	// inspector_inspect(ptr);
+	thread_reference_build_frames(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		LONG2NUM(ptr->id),
 		rb_str_new_cstr(file),
@@ -62,9 +64,10 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 	result = SYM2ID(rb_funcall(snapshot, rb_intern("control"), 0));
 	if (event != rb_intern("initialize"))
 	{
-		ptr->cursor = ptr->frames->size;
+		ptr->cursor = ptr->depth;
 		ptr->control = result;
 	}
+	thread_reference_clear_frames(ptr);
 	return result;
 }
 
@@ -85,13 +88,14 @@ process_line_event(VALUE tracepoint, void *data)
 	if (ref != Qnil)
 	{
 		ptr = thread_reference_pointer(ref);
-		thread_reference_push_frame(ptr, tracepoint);
+		// thread_reference_push_frame(ptr, tracepoint);
 		// ptr = thread_reference_update_frames(ref, tracepoint);
 		// frame = stack_peek(ptr->frames);
 		threadPaused = (ptr->control == id_pause);
 		arg = rb_tracearg_from_tracepoint(tracepoint);
 		tmp = rb_tracearg_path(arg);
-		tp_file = StringValueCStr(tmp);
+		// tp_file = StringValueCStr(tmp);
+		tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
 		tmp = rb_tracearg_lineno(arg);
 		tp_line = NUM2LONG(tmp);
 
@@ -131,6 +135,8 @@ process_line_event(VALUE tracepoint, void *data)
 		{
 			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
+
+		free(tp_file);
 	}
 }
 
@@ -138,11 +144,14 @@ static void
 process_call_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
+	thread_reference_t *ptr;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		thread_reference_push_stack(ref);
+		// thread_reference_push_stack(ref);
+		ptr = thread_reference_pointer(ref);
+		ptr->depth++;
 	}
 }
 
@@ -150,11 +159,14 @@ static void
 process_return_event(VALUE tracepoint, void *data)
 {
 	VALUE ref;
+	thread_reference_t *ptr;
 	
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		thread_reference_pop_stack(ref);
+		// thread_reference_pop_stack(ref);
+		ptr = thread_reference_pointer(ref);
+		ptr->depth--;
 	}
 }
 

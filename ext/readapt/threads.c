@@ -12,7 +12,7 @@ static void thread_reference_free(void* data)
 	thread_reference_t* thr;
 
 	thr = data;
-	stack_free(thr->calls);
+	// stack_free(thr->calls);
 	stack_free(thr->frames);
 	free(thr);
 }
@@ -39,9 +39,10 @@ static VALUE thread_reference_new(VALUE thr)
 	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
 	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
 	data->cursor = 0;
+	data->depth = 0;
 	data->control = rb_intern("continue");
 	data->frames = stack_alloc(sizeof(frame_t), frame_free);
-	data->calls = stack_alloc(sizeof(frame_t), NULL);
+	// data->calls = stack_alloc(sizeof(frame_t), NULL);
 	return obj;
 }
 
@@ -144,34 +145,34 @@ static void clear_frames(thread_reference_t *data)
 // 	return data;
 // }
 
-void thread_reference_push_stack(VALUE ref)
-{
-	thread_reference_t *data;
-	frame_t *frame;
+// void thread_reference_push_stack(VALUE ref)
+// {
+// 	thread_reference_t *data;
+// 	frame_t *frame;
 
-	data = thread_reference_pointer(ref);
-	frame = stack_peek(data->frames);
-	if (frame)
-	{
-		stack_push(data->calls, frame);
-		frame->stack++;
-	}
-}
+// 	data = thread_reference_pointer(ref);
+// 	frame = stack_peek(data->frames);
+// 	if (frame)
+// 	{
+// 		stack_push(data->calls, frame);
+// 		frame->stack++;
+// 	}
+// }
 
-void thread_reference_pop_stack(VALUE ref)
-{
-	thread_reference_t *data;
-	frame_t *frame;
+// void thread_reference_pop_stack(VALUE ref)
+// {
+// 	thread_reference_t *data;
+// 	frame_t *frame;
 
-	data = thread_reference_pointer(ref);
-	frame = stack_peek(data->calls);
-	if (frame)
-	{
-		frame->stack--;
-		stack_pop(data->calls);
-	}
-	clear_frames(data);
-}
+// 	data = thread_reference_pointer(ref);
+// 	frame = stack_peek(data->calls);
+// 	if (frame)
+// 	{
+// 		frame->stack--;
+// 		stack_pop(data->calls);
+// 	}
+// 	clear_frames(data);
+// }
 
 void thread_clear()
 {
@@ -182,9 +183,10 @@ static VALUE thread_allocate_s(VALUE self)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	data->control = rb_intern("continue");
+	data->depth = 0;
 	data->cursor = 0;
 	data->frames = stack_alloc(sizeof(frame_t), frame_free);
-	data->calls = stack_alloc(sizeof(frame_t), NULL);
+	// data->calls = stack_alloc(sizeof(frame_t), NULL);
 	data->id = 0;
 	return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
@@ -232,6 +234,22 @@ static VALUE frames_m(VALUE self)
 	}
 
 	return ary;
+}
+
+void thread_reference_build_frames(thread_reference_t *ptr)
+{
+	inspector_inspect(ptr);
+}
+
+void thread_reference_clear_frames(thread_reference_t *ptr)
+{
+	// TODO This is probably suboptimal
+	// while (ptr->frames->size > 0)
+	// {
+	// 	stack_pop(ptr->frames);
+	// }
+	stack_free(ptr->frames);
+	ptr->frames = stack_alloc(sizeof(frame_t), frame_free);
 }
 
 void initialize_threads(VALUE m_Readapt)

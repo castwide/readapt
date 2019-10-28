@@ -2,6 +2,7 @@
 #include "ruby/debug.h"
 #include "frame.h"
 #include "threads.h"
+#include "normalize.h"
 
 static size_t
 inspector_size(const void *data)
@@ -35,36 +36,33 @@ static VALUE process_inspection(const rb_debug_inspector_t *inspector, void *ptr
     VALUE path;
     int line;
     VALUE bnd;
-    int cursor; // TODO long or int?
     thread_reference_t *data;
     frame_t *frm;
-
 
     data = ptr;
 
     locations = rb_debug_inspector_backtrace_locations(inspector);
     size = rb_funcall(locations, rb_intern("size"), 0);
     i_size = NUM2INT(size);
-    cursor = data->frames->size - 1;
-    for (i = 0; i < i_size; i++)
+    for (i = i_size - 1; i >= 0; i--)
     {
-        if (cursor < 0)
-        {
-            break;
-        }
-
         loc = rb_ary_entry(locations, i);
         path = rb_funcall(loc, rb_intern("absolute_path"), 0);
         line = NUM2INT(rb_funcall(loc, rb_intern("lineno"), 0));
 
         bnd = rb_debug_inspector_frame_binding_get(inspector, i);
 
-        frm = data->frames->elements[cursor];
-        if (frm->line == line && strcmp(frm->file, StringValueCStr(path)) == 0)
-        {
-            frm->binding = bnd;
-            cursor--;
-        }
+        // frm = data->frames->elements[cursor];
+        // if (frm->line == line && strcmp(frm->file, StringValueCStr(path)) == 0)
+        // {
+        //     frm->binding = bnd;
+        //     cursor--;
+        // }
+        frm = malloc(sizeof(frame_t));
+        frm->file = normalize_path_new_cstr(StringValueCStr(path));
+        frm->line = line;
+        frm->binding = bnd;
+        stack_push(data->frames, frm);
     }
 
     return Qnil;
