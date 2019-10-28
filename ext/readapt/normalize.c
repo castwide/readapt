@@ -17,23 +17,28 @@ checkIfWindows()
 char *normalize_path_new_cstr(char *str)
 {
     char *buffer;
-    long i, len;
 
     buffer = malloc((strlen(str) + 1) * sizeof(char));
-    strcpy(buffer, str);
+    normalize_path(buffer);
+    return buffer;
+}
+
+void normalize_path(char *str)
+{
+    long i, len;
+
     if (isWindows)
     {
-        buffer[0] = toupper(buffer[0]);
-        len = strlen(buffer);
+        str[0] = toupper(str[0]);
+        len = strlen(str);
         for (i = 2; i < len; i++)
         {
-            if (buffer[i] == '\\')
+            if (str[i] == '\\')
             {
-                buffer[i] = '/';
+                str[i] = '/';
             }
         }
     }
-    return buffer;
 }
 
 static VALUE

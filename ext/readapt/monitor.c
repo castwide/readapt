@@ -93,7 +93,9 @@ process_line_event(VALUE tracepoint, void *data)
 
 		arg = rb_tracearg_from_tracepoint(tracepoint);
 		tmp = rb_tracearg_path(arg);
-		tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
+		// tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
+		tp_file = StringValueCStr(tmp);
+		normalize_path(tp_file);
 		tmp = rb_tracearg_lineno(arg);
 		tp_line = NUM2INT(tmp);
 
@@ -129,7 +131,7 @@ process_line_event(VALUE tracepoint, void *data)
 			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
 
-		free(tp_file);
+		// free(tp_file);
 	}
 }
 
