@@ -48,7 +48,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 {
 	VALUE snapshot, result;
 
-	// thread_reference_build_frames(ptr);
+	thread_reference_build_frames(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		LONG2NUM(ptr->id),
 		rb_str_new_cstr(file),
@@ -64,7 +64,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 		ptr->cursor = ptr->depth;
 		ptr->control = result;
 	}
-	// thread_reference_clear_frames(ptr);
+	thread_reference_clear_frames(ptr);
 	return result;
 }
 
@@ -76,7 +76,6 @@ process_line_event(VALUE tracepoint, void *data)
 	rb_trace_arg_t *arg;
 	int threadPaused;
 	ID dapEvent;
-	// frame_t *frame;
 	VALUE tmp;
 	char *tp_file;
 	long tp_line;
@@ -86,17 +85,18 @@ process_line_event(VALUE tracepoint, void *data)
 	{
 		ptr = thread_reference_pointer(ref);
 		threadPaused = (ptr->control == id_pause);
+
+		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
+		{
+			return;
+		}
+
 		arg = rb_tracearg_from_tracepoint(tracepoint);
 		tmp = rb_tracearg_path(arg);
 		tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
 		tmp = rb_tracearg_lineno(arg);
 		tp_line = NUM2INT(tmp);
 
-		if (firstLineEvent && ptr->control == id_continue && breakpoints_files() == 0)
-		{
-			return;
-		}
-		
 		dapEvent = id_continue;
 		if (!firstLineEvent)
 		{
@@ -142,7 +142,6 @@ process_call_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		// thread_reference_push_stack(ref);
 		ptr = thread_reference_pointer(ref);
 		ptr->depth++;
 	}
@@ -157,7 +156,6 @@ process_return_event(VALUE tracepoint, void *data)
 	ref = thread_current_reference();
 	if (ref != Qnil)
 	{
-		// thread_reference_pop_stack(ref);
 		ptr = thread_reference_pointer(ref);
 		ptr->depth--;
 	}
