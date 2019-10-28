@@ -47,10 +47,8 @@ static int match_step(thread_reference_t *ptr)
 static ID
 monitor_debug(const char *file, const long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
-	VALUE bind, bid, snapshot, result;
+	VALUE snapshot, result;
 
-	bind = rb_funcall(tracepoint, rb_intern("binding"), 0);
-	bid = rb_funcall(bind, rb_intern("object_id"), 0);
 	inspector_inspect(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		LONG2NUM(ptr->id),
