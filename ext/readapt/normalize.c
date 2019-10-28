@@ -19,6 +19,7 @@ char *normalize_path_new_cstr(char *str)
     char *buffer;
 
     buffer = malloc((strlen(str) + 1) * sizeof(char));
+    strcpy(buffer, str);
     normalize_path(buffer);
     return buffer;
 }
