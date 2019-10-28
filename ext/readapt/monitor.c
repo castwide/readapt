@@ -174,15 +174,14 @@ process_thread_begin_event(VALUE tracepoint, void *data)
 	if (here != Qnil)
 	{
 		ref = thread_add_reference(here);
-		// thread_reference_push_frame(ref, tracepoint);
 		ptr = thread_reference_pointer(ref);
-		// monitor_debug(
-		// 	"",
-		// 	0,
-		// 	tracepoint,
-		// 	ptr,
-		// 	rb_intern("thread_begin")
-		// );
+		monitor_debug(
+			"",
+			0,
+			tracepoint,
+			ptr,
+			rb_intern("thread_begin")
+		);
 	}
 }
 
@@ -199,7 +198,7 @@ process_thread_end_event(VALUE tracepoint, void *data)
 		if (ref != Qnil)
 		{
 			ptr = thread_reference_pointer(ref);
-			// monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
+			monitor_debug("", 0, tracepoint, ptr, rb_intern("thread_end"));
 			thread_delete_reference(thr);
 		}
 	}
