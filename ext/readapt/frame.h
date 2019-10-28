@@ -6,7 +6,6 @@
 typedef struct frame_struct {
     char *file;
     int line;
-    int stack;
     VALUE binding;
 } frame_t;
 

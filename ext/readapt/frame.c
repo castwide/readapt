@@ -53,20 +53,16 @@ frame_t *frame_data_from_tracepoint(VALUE tracepoint)
     rb_trace_arg_t *tracearg;
     char *file;
     int line;
-    // long binding_id;
 
     data = malloc(sizeof(frame_t));
     tracearg = rb_tracearg_from_tracepoint(tracepoint);
     tmp = rb_tracearg_path(tracearg);
     file = (tmp == Qnil ? NULL : normalize_path_new_cstr(StringValueCStr(tmp)));
     line = NUM2INT(rb_tracearg_lineno(tracearg));
-    // bnd = rb_tracearg_binding(tracearg);
-    // binding_id = NUM2LONG(rb_obj_id(bnd));
 
     data->file = file;
     data->line = line;
     data->binding = Qnil;
-    data->stack = 0;
 
     return data;
 }
@@ -132,12 +128,12 @@ VALUE frame_binding_m(VALUE self)
     return data->binding;
 }
 
-VALUE frame_stack_m(VALUE self)
-{
-    frame_t *data;
-    TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    return INT2NUM(data->stack);
-}
+// VALUE frame_stack_m(VALUE self)
+// {
+//     frame_t *data;
+//     TypedData_Get_Struct(self, frame_t, &frame_type, data);
+//     return INT2NUM(data->stack);
+// }
 
 void initialize_frame(VALUE m_Readapt)
 {
