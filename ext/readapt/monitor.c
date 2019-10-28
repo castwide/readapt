@@ -53,7 +53,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 		LONG2NUM(ptr->id),
 		rb_str_new_cstr(file),
 		INT2NUM(line),
-		ID2SYM(event),
+		ID2SYM(event)
 	);
 	rb_io_flush(rb_stdout);
 	rb_io_flush(rb_stderr);
