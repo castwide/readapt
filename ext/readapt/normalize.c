@@ -14,16 +14,6 @@ checkIfWindows()
     return result == Qnil ? 0 : 1;
 }
 
-char *normalize_path_new_cstr(char *str)
-{
-    char *buffer;
-
-    buffer = malloc((strlen(str) + 1) * sizeof(char));
-    strcpy(buffer, str);
-    normalize_path(buffer);
-    return buffer;
-}
-
 void normalize_path(char *str)
 {
     long i, len;
@@ -40,6 +30,16 @@ void normalize_path(char *str)
             }
         }
     }
+}
+
+char *normalize_path_new_cstr(char *str)
+{
+    char *buffer;
+
+    buffer = malloc((strlen(str) + 1) * sizeof(char));
+    strcpy(buffer, str);
+    normalize_path(buffer);
+    return buffer;
 }
 
 static VALUE
