@@ -10,13 +10,13 @@ module Readapt
         set_body({
           stackFrames: frames.map do |frm|
             {
-              name: frame_code(frm.location.file, frm.location.line),
+              name: frame_code(frm.file, frm.line),
               source: {
-                name: frm.location.file ? File.basename(frm.location.file) : nil,
-                path: frm.location.file
+                name: frm.file ? File.basename(frm.file) : nil,
+                path: frm.file
               },
               id: frm.local_id,
-              line: frm.location.line,
+              line: frm.line,
               column: 0
             }
           end,

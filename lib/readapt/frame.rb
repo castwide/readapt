@@ -15,10 +15,6 @@ module Readapt
       "[#{e.class}] #{e.message}"
     end
 
-    def location
-      Location.new(file, line)
-    end
-
     def local_id
       frame_binding.object_id
     end
