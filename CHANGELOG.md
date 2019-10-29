@@ -1,6 +1,8 @@
 # 0.8.0
 - Multiple frames
 - Flush output on disconnect
+- Use Ruby debug inspector for stack frames
+- Faster line processing
 
 # 0.7.1 - October 13, 2019
 - Debugger sets program name
