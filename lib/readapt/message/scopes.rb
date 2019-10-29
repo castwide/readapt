@@ -14,7 +14,8 @@ module Readapt
             },
             {
               name: 'Global',
-              variablesReference: TOPLEVEL_BINDING.receiver.object_id,
+              # @todo 1 is a magic number representing the toplevel binding
+              variablesReference: 1,
               expensive: true
             }
           ]

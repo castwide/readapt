@@ -6,32 +6,36 @@ module Readapt
       def run
         ref = arguments['variablesReference']
         frame = debugger.frame(ref)
-        vars = if frame != Frame::NULL_FRAME && !frame.nil?
-          frame.locals
-        elsif ref == TOPLEVEL_BINDING.receiver.object_id
+        # @todo 1 is a magic number representing the toplevel binding (see
+        #   Message::Scopes)
+        vars = if ref == 1
           global_variables.map do |gv|
             Variable.new(gv, eval(gv.to_s))
           end
         else
-          obj = object_reference
-          result = []
-          if obj.is_a?(Array)
-            obj.each_with_index do |itm, idx|
-              result.push Variable.new("[#{idx}]", itm)
-            end
-          elsif obj.is_a?(Hash)
-            obj.each_pair do |idx, itm|
-              result.push Variable.new("[#{idx}]", itm)
-            end
+          if frame != Frame::NULL_FRAME && !frame.nil?
+            frame.locals
           else
-            obj.instance_variables.each do |iv|
-              result.push Variable.new(iv, obj.instance_variable_get(iv))
+            obj = object_reference
+            result = []
+            if obj.is_a?(Array)
+              obj.each_with_index do |itm, idx|
+                result.push Variable.new("[#{idx}]", itm)
+              end
+            elsif obj.is_a?(Hash)
+              obj.each_pair do |idx, itm|
+                result.push Variable.new("[#{idx}]", itm)
+              end
+            else
+              obj.instance_variables.each do |iv|
+                result.push Variable.new(iv, obj.instance_variable_get(iv))
+              end
+              obj.class.class_variables.each do |cv|
+                result.push Variable.new(cv, obj.class.class_variable_get(cv))
+              end
             end
-            obj.class.class_variables.each do |cv|
-              result.push Variable.new(cv, obj.class.class_variable_get(cv))
-            end
+            result
           end
-          result
         end
         set_body({
           variables: vars.map do |var|
