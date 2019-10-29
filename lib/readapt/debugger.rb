@@ -122,7 +122,7 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      # gc_already_disabled = GC.disable
+      gc_already_disabled = GC.disable
       sleep 0.001 # @todo Trying to let thread data sync
       if snapshot.event == :thread_begin || snapshot.event == :entry
         thr = Thread.find(snapshot.thread_id)
@@ -180,7 +180,7 @@ module Readapt
         end
         snapshot.control = thread.control
       end
-      # GC.enable unless gc_already_disabled
+      GC.enable unless gc_already_disabled
     end
 
     def set_program_args
