@@ -9,7 +9,7 @@ module Readapt
         lines = []
         set_body(
           breakpoints: arguments['breakpoints'].map do |val|
-            debugger.set_breakpoint path, val['line'], val['condition']
+            debugger.set_breakpoint path, val['line'], val['condition'], val['hitCondition']
             lines.push val['line']
             {
               verified: true, # @todo Verify

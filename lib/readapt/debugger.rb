@@ -95,11 +95,11 @@ module Readapt
     end
 
     def get_breakpoint source, line
-      @breakpoints["#{source}:#{line}"] || Breakpoint.new(source, line, nil)
+      @breakpoints["#{source}:#{line}"] || Breakpoint.new(source, line, nil, 0)
     end
 
-    def set_breakpoint source, line, condition
-      @breakpoints["#{source}:#{line}"] = Breakpoint.new(source, line, condition)
+    def set_breakpoint source, line, condition, hitcount
+      @breakpoints["#{source}:#{line}"] = Breakpoint.new(source, line, condition, hitcount)
     end
 
     def clear_breakpoints source
@@ -143,13 +143,31 @@ module Readapt
         snapshot.control = :continue
       else
         confirmed_pause = true
+        thread = self.thread(snapshot.thread_id)
         if snapshot.event == :breakpoint
           bp = get_breakpoint(snapshot.file, snapshot.line)
           unless bp.condition.nil? || bp.condition.empty?
             # @type [Binding]
-            bnd = ObjectSpace._id2ref(snapshot.binding_id)
+            bnd = thread.frames.first.frame_binding
             begin
               unless bnd.eval(bp.condition)
+                confirmed_pause = false
+              end
+            rescue Exception => e
+              STDERR.puts "Breakpoint condition raised an error"
+              STDERR.puts "#{snapshot.file}:#{snapshot.line} - `#{bp.condition}`"
+              STDERR.puts "[#{e.class}] #{e.message}"
+              confirmed_pause = false
+            end
+          end
+          unless !confirmed_pause || bp.hit_condition.nil? || bp.hit_condition.empty?
+            bp.hit_cursor += 1
+            bnd = thread.frames.first.frame_binding
+            begin
+              hit_count = bnd.eval(bp.hit_condition)
+              if bp.hit_cursor == hit_count
+                bp.hit_cursor = 0
+              else
                 confirmed_pause = false
               end
             rescue Exception => e
@@ -162,7 +180,6 @@ module Readapt
         end
         if confirmed_pause
           changed
-          thread = self.thread(snapshot.thread_id)
           thread.control = :pause
           thread.frames.each do |frm|
             @frames[frm.local_id] = frm
