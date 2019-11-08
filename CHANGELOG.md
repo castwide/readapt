@@ -1,4 +1,4 @@
-# 0.8.0
+# 0.8.0 - November 8, 2019
 - Multiple frames
 - Flush output on disconnect
 - Use Ruby debug inspector for stack frames
