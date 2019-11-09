@@ -11,7 +11,11 @@ require 'readapt/finder'
 require 'readapt/debugger'
 require 'readapt/message'
 require 'readapt/variable'
+require 'readapt/data_reader'
 require 'readapt/adapter'
+require 'readapt/input'
+require 'readapt/output'
+require 'readapt/error'
 require 'readapt/shell'
 
 module Readapt
