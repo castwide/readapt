@@ -123,7 +123,7 @@ VALUE frame_binding_m(VALUE self)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    return data->binding || Qnil;
+    return data->binding;
 }
 
 void initialize_frame(VALUE m_Readapt)
