@@ -46,8 +46,10 @@ static int match_step(thread_reference_t *ptr)
 static ID
 monitor_debug(const char *file, const long line, VALUE tracepoint, thread_reference_t *ptr, ID event)
 {
-	VALUE snapshot, result;
+	VALUE snapshot, result, gc_disabled;
 
+	// Disable garbage collection to avoid segfaults in Frame#frame_binding
+	gc_disabled = rb_gc_disable();
 	thread_reference_build_frames(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		LONG2NUM(ptr->id),
@@ -65,6 +67,10 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 		ptr->control = result;
 	}
 	thread_reference_clear_frames(ptr);
+	if (!RTEST(gc_disabled))
+	{
+		rb_gc_enable();
+	}
 	return result;
 }
 

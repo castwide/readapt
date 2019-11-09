@@ -122,10 +122,6 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      # @todo Disabling the GC is necessary to ensure that bindings do not get
-      #   garbage collected. There might be a better way to do this; e.g., use
-      #   a global array in threads.c to keep track of currently used bindings.
-      gc_already_disabled = GC.disable
       sleep 0.001 # @todo Trying to let thread data sync
       if snapshot.event == :thread_begin || snapshot.event == :entry
         thr = Thread.find(snapshot.thread_id)
@@ -200,7 +196,6 @@ module Readapt
         end
         snapshot.control = thread.control
       end
-      GC.enable unless gc_already_disabled
     end
 
     def set_program_args

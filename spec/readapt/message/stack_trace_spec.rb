@@ -2,7 +2,8 @@ RSpec.describe Readapt::Message::StackTrace do
   it 'gets stack traces' do
     Readapt::Monitor.start __FILE__ do
       # Disable GC to ensure the binding does not get garbage collected
-      # @todo There might be a better way to handle this. See Debugger#debug
+      # @todo There might be a better way to handle this. Consider holding a
+      #   reference to the thread's frames in threads.c.
       GC.disable
       debugger = double(:Debugger)
       allow(debugger).to receive(:thread) { Readapt::Thread.find(Thread.current.object_id) }

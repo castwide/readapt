@@ -1,8 +1,9 @@
-# 0.8.0 - November 8, 2019
+# 0.8.0 - November 9, 2019
 - Multiple frames
 - Flush output on disconnect
 - Use Ruby debug inspector for stack frames
 - Faster line processing
+- Monitor disables GC
 
 # 0.7.1 - October 13, 2019
 - Debugger sets program name
