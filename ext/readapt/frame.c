@@ -81,7 +81,6 @@ VALUE frame_initialize_m(VALUE self, VALUE file, VALUE line, VALUE binding)
     }
     data->line = NUM2INT(line);
     data->binding = binding;
-    // data->stack = NUM2INT(stack);
     return self;
 }
 
@@ -124,16 +123,8 @@ VALUE frame_binding_m(VALUE self)
 {
     frame_t *data;
     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-    // return LONG2NUM(data->binding_id);
-    return data->binding;
+    return data->binding || Qnil;
 }
-
-// VALUE frame_stack_m(VALUE self)
-// {
-//     frame_t *data;
-//     TypedData_Get_Struct(self, frame_t, &frame_type, data);
-//     return INT2NUM(data->stack);
-// }
 
 void initialize_frame(VALUE m_Readapt)
 {
@@ -143,5 +134,4 @@ void initialize_frame(VALUE m_Readapt)
     rb_define_method(c_Frame, "file", frame_file_m, 0);
     rb_define_method(c_Frame, "line", frame_line_m, 0);
     rb_define_method(c_Frame, "frame_binding", frame_binding_m, 0);
-    // rb_define_method(c_Frame, "stack", frame_stack_m, 0);
 }
