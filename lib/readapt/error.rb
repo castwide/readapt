@@ -17,6 +17,7 @@ module Readapt
         if open_message.start_with?(@buffer) || @buffer.start_with?(open_message)
           if @buffer.end_with?(close_message)
             msg = @buffer[open_message.length..-(close_message.length+1)]
+            exit if msg == '__TERMINATE__'
             Error.adapter.write msg
             @buffer.clear
           end

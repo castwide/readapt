@@ -42,6 +42,7 @@ module Readapt
 
     def closing
       @@debugger.delete_observer(self)
+      write "#{open_message}__TERMINATE__#{close_message}"
     end
 
     def receiving data
