@@ -30,21 +30,19 @@ module Readapt
         procid = SecureRandom.hex(8)
         Readapt::Error.procid = procid
         stdin, stdout, stderr = Open3.popen3('ruby', $0, 'target', procid)
-        # server = TCPServer.new(options[:host], options[:port])
-        # STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
-        # connection = server.accept
-        # STDERR.puts "Connection accepted"
+        stdin.sync = true
+        stdout.sync = true
+        stderr.sync = true
+        stdin.binmode
+        Readapt::Server.target_in = stdin
+        output = Backport::Server::Stdio.new(input: stdout, output: stdin, adapter: Readapt::Output)
+        error = Backport::Server::Stdio.new(input: stderr, output: stdin, adapter: Readapt::Error)
         server = Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Server)
-        machine.prepare server
-        # machine.prepare Backport::Server::Stdio.new(input: connection, output: stdin, adapter: Readapt::Input)
-        output = Backport::Server::Stdio.new(input: stdout, output: connection, adapter: Readapt::Output)
         machine.prepare output
-        error = Backport::Server::Stdio.new(input: stderr, output: connection, adapter: Readapt::Error)
         machine.prepare error
-        server.output = output
-        server.error = error
-        connection.sync = true
-        connection.flush
+        machine.prepare server
+        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
+        STDERR.flush
       end
     end
 
@@ -74,6 +72,9 @@ module Readapt
 
     desc 'target [PROCID]', 'Run a target process'
     def target procid = nil
+      STDIN.binmode
+      STDOUT.binmode
+      STDERR.binmode
       STDOUT.sync = true
       STDERR.sync = true
       Readapt::Adapter.procid = procid
@@ -87,7 +88,7 @@ module Readapt
         end
         debugger = Readapt::Debugger.new(machine)
         Readapt::Adapter.host debugger
-        machine.prepare Backport::Server::Stdio.new(input: STDIN, output: STDOUT, adapter: Readapt::Adapter)
+        machine.prepare Backport::Server::Stdio.new(input: STDIN, output: STDERR, adapter: Readapt::Adapter)
       end
     end
 

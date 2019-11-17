@@ -1,14 +1,19 @@
+require 'securerandom'
+require 'stringio'
+
 module Readapt
   module Server
-    # @return [Backport::Server::Stdio]
-    attr_accessor :output
+    class << self
+      attr_accessor :target_in
+    end
 
-    attr_accessor :error
+    def opening
+      Error.adapter = self
+      Output.adapter = self
+    end
 
     def receiving data
-      error.clients.each do |c|
-        c.adapter.write data
-      end
+      Server.target_in.syswrite data
     end
   end
 end

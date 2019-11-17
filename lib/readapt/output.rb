@@ -1,5 +1,9 @@
 module Readapt
   module Output
+    class << self
+      attr_accessor :adapter
+    end
+
     def receiving data
       send_event('output', {
         output: data,
@@ -15,7 +19,7 @@ module Readapt
       obj[:body] = data unless data.nil?
       json = obj.to_json
       envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
-      write envelope
+      Output.adapter.write envelope
     end
   end
 end

@@ -75,7 +75,7 @@ module Readapt
           body: message.body
         }.to_json
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
-        write envelope
+        write "#{open_message}#{envelope}#{close_message}"
         close if data['command'] == 'disconnect'
         return unless data['command'] == 'initialize'
         json = {
@@ -83,7 +83,7 @@ module Readapt
           event: 'initialized'
         }.to_json
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
-        write envelope
+        write "#{open_message}#{envelope}#{close_message}"
       end
     rescue RuntimeError => e
       STDERR.puts "[#{e.class}] #{e.message}"

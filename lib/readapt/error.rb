@@ -2,6 +2,10 @@ require 'securerandom'
 
 module Readapt
   module Error
+    class << self
+      attr_accessor :adapter
+    end
+
     def opening
       @buffer = ''
     end
@@ -9,11 +13,11 @@ module Readapt
     def receiving data
       output = ''
       data.each_char do |char|
-        @buffer += data
-        if open_message.start_with?(@buffer)
+        @buffer += char
+        if open_message.start_with?(@buffer) || @buffer.start_with?(open_message)
           if @buffer.end_with?(close_message)
-            # @todo Handle a message
-            write @buffer
+            msg = @buffer[open_message.length..-(close_message.length+1)]
+            Error.adapter.write msg
             @buffer.clear
           end
         else
@@ -36,7 +40,7 @@ module Readapt
       obj[:body] = data unless data.nil?
       json = obj.to_json
       envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
-      write envelope
+      Error.adapter.write envelope
     end
 
     def self.procid= pid
