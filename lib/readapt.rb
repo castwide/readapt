@@ -18,6 +18,3 @@ require 'readapt/input'
 require 'readapt/output'
 require 'readapt/error'
 require 'readapt/shell'
-
-module Readapt
-end
