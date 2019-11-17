@@ -8,9 +8,9 @@
  * e.g., `sizeof(some_struct)`. The optional `free_func` argument is a pointer
  * to a function that will be called when an element is popped off the stack.
  */
-stack_t *stack_alloc(size_t elem_size, void (*free_func)(void *))
+readapt_stack_t *stack_alloc(size_t elem_size, void (*free_func)(void *))
 {
-    stack_t *s = malloc(sizeof(stack_t));
+    readapt_stack_t *s = malloc(sizeof(readapt_stack_t));
     s->elem_size = elem_size;
     s->free_func = free_func;
     s->size = 0;
@@ -21,7 +21,7 @@ stack_t *stack_alloc(size_t elem_size, void (*free_func)(void *))
 /**
  * Add an element to the end of the stack
  */
-void stack_push(stack_t *stack, void *element)
+void stack_push(readapt_stack_t *stack, void *element)
 {
     if (stack->size == stack->capacity)
     {
@@ -43,7 +43,7 @@ void stack_push(stack_t *stack, void *element)
 /**
  * Get a pointer to the last element in the stack.
  */
-void *stack_peek(stack_t *stack)
+void *stack_peek(readapt_stack_t *stack)
 {
     return stack->size == 0 ? NULL : stack->elements[stack->size - 1];
 }
@@ -51,7 +51,7 @@ void *stack_peek(stack_t *stack)
 /**
  * Pop the last element off the stack and pass it to free_func.
  */
-void stack_pop(stack_t *stack)
+void stack_pop(readapt_stack_t *stack)
 {
     void *e;
 
@@ -71,7 +71,7 @@ void stack_pop(stack_t *stack)
  * Free the stack from memory. If it still contains any elements, pass them to
  * free_func.
  */
-void stack_free(stack_t *stack)
+void stack_free(readapt_stack_t *stack)
 {
     int i;
 

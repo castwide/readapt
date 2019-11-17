@@ -1,3 +1,6 @@
+# 0.8.1 - November 14, 2019
+- Header name conflict in MacOS (#4)
+
 # 0.8.0 - November 9, 2019
 - Multiple frames
 - Flush output on disconnect
