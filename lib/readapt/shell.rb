@@ -30,38 +30,47 @@ module Readapt
         procid = SecureRandom.hex(8)
         Readapt::Error.procid = procid
         stdin, stdout, stderr = Open3.popen3('ruby', $0, 'target', procid)
-        server = TCPServer.new(options[:host], options[:port])
-        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
-        connection = server.accept
-        machine.prepare Backport::Server::Stdio.new(input: connection, output: stdin, adapter: Readapt::Input)
-        machine.prepare Backport::Server::Stdio.new(input: stdout, output: connection, adapter: Readapt::Output)
-        machine.prepare Backport::Server::Stdio.new(input: stderr, output: connection, adapter: Readapt::Error)
+        # server = TCPServer.new(options[:host], options[:port])
+        # STDERR.puts "Readapt Debugger #{Readapt::VERSION} is listening HOST=#{options[:host]} PORT=#{options[:port]} PID=#{Process.pid}"
+        # connection = server.accept
+        # STDERR.puts "Connection accepted"
+        server = Backport::Server::Tcpip.new(host: options[:host], port: options[:port], adapter: Readapt::Server)
+        machine.prepare server
+        # machine.prepare Backport::Server::Stdio.new(input: connection, output: stdin, adapter: Readapt::Input)
+        output = Backport::Server::Stdio.new(input: stdout, output: connection, adapter: Readapt::Output)
+        machine.prepare output
+        error = Backport::Server::Stdio.new(input: stderr, output: connection, adapter: Readapt::Error)
+        machine.prepare error
+        server.output = output
+        server.error = error
+        connection.sync = true
+        connection.flush
       end
     end
 
-    desc 'stdio', 'Run a DAP process'
-    def stdio
-      STDOUT.sync = true
-      STDERR.sync = true
-      machine = Backport::Machine.new
-      machine.run do
-        Signal.trap("INT") do
-          graceful_shutdown
-        end
-        Signal.trap("TERM") do
-          graceful_shutdown
-        end
-        procid = SecureRandom.hex(8)
-        Readapt::Error.procid = procid
-        stdin, stdout, stderr = Open3.popen3('ruby', $0, 'target', procid)
-        STDERR.puts "Readapt Debugger #{Readapt::VERSION} is running"
-        # machine.prepare Backport::Server::Stdio.new(input: STDIN, output: stdin, adapter: Readapt::Input)
-        # machine.prepare Backport::Server::Stdio.new(input: stdout, output: STDOUT, adapter: Readapt::Output)
-        machine.prepare Backport::Server::Stdio.new(input: STDIN, output: stdin, adapter: Readapt::Input)
-        machine.prepare Backport::Server::Stdio.new(input: stdout, output: STDOUT, adapter: Readapt::Output)
-        machine.prepare Backport::Server::Stdio.new(input: stderr, output: STDOUT, adapter: Readapt::Error)
-      end
-    end
+    # desc 'stdio', 'Run a DAP process'
+    # def stdio
+    #   STDOUT.sync = true
+    #   STDERR.sync = true
+    #   machine = Backport::Machine.new
+    #   machine.run do
+    #     Signal.trap("INT") do
+    #       graceful_shutdown
+    #     end
+    #     Signal.trap("TERM") do
+    #       graceful_shutdown
+    #     end
+    #     procid = SecureRandom.hex(8)
+    #     Readapt::Error.procid = procid
+    #     stdin, stdout, stderr = Open3.popen3('ruby', $0, 'target', procid)
+    #     STDERR.puts "Readapt Debugger #{Readapt::VERSION} is running"
+    #     # machine.prepare Backport::Server::Stdio.new(input: STDIN, output: stdin, adapter: Readapt::Input)
+    #     # machine.prepare Backport::Server::Stdio.new(input: stdout, output: STDOUT, adapter: Readapt::Output)
+    #     machine.prepare Backport::Server::Stdio.new(input: STDIN, output: stdin, adapter: Readapt::Input)
+    #     machine.prepare Backport::Server::Stdio.new(input: stdout, output: STDOUT, adapter: Readapt::Output)
+    #     machine.prepare Backport::Server::Stdio.new(input: stderr, output: STDOUT, adapter: Readapt::Error)
+    #   end
+    # end
 
     desc 'target [PROCID]', 'Run a target process'
     def target procid = nil
