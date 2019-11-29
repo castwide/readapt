@@ -18,7 +18,7 @@ module Readapt
     end
 
     def closing
-      Process.kill Server.target_pid
+      Process.kill "KILL", Server.target_pid
     end
   end
 end

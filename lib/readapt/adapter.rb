@@ -77,7 +77,10 @@ module Readapt
         }.to_json
         envelope = "Content-Length: #{json.bytesize}\r\n\r\n#{json}"
         write "#{open_message}#{envelope}#{close_message}"
-        close if data['command'] == 'disconnect'
+        if data['command'] == 'disconnect'
+          @@debugger.disconnect
+          close
+        end
         return unless data['command'] == 'initialize'
         json = {
           type: 'event',

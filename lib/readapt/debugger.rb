@@ -75,7 +75,7 @@ module Readapt
     rescue StandardError => e
       STDERR.puts "[#{e.class}] #{e.message}"
       STDERR.puts e.backtrace.join("\n")
-    rescue SystemExit
+    # rescue SystemExit
       # Ignore
     ensure
       Monitor.stop
@@ -211,8 +211,11 @@ module Readapt
     end
 
     def shutdown
+      # HACK: Wait a moment to make sure the output is flushed
+      # @todo Find a better way
+      # sleep 1
       @machine.stop
-      exit
+      # exit
     end
 
     def send_event event, data, wait = false
