@@ -72,12 +72,13 @@ module Readapt
       end
       procid = SecureRandom.hex(8)
       Readapt::Error.procid = procid
-      stdin, stdout, stderr = Open3.popen3('ruby', $0, 'target', procid)
+      stdin, stdout, stderr, pid = Open3.popen3('ruby', $0, 'target', procid)
       stdin.sync = true
       stdout.sync = true
       stderr.sync = true
       stdin.binmode
       Readapt::Server.target_in = stdin
+      Readapt::Server.target_pid = pid
       output = Backport::Server::Stdio.new(input: stdout, output: stdin, adapter: Readapt::Output)
       error = Backport::Server::Stdio.new(input: stderr, output: stdin, adapter: Readapt::Error)
       machine.prepare output
