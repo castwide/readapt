@@ -15,10 +15,14 @@ module Readapt
 
     def receiving data
       Server.target_in.syswrite data
+    rescue Errno::EPIPE
+      close
     end
 
     def closing
       Process.kill "KILL", Server.target_pid
+    rescue Errno::ESRCH
+      # Ignore
     end
   end
 end
