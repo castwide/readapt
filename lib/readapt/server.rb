@@ -15,7 +15,7 @@ module Readapt
 
     def receiving data
       Server.target_in.syswrite data
-    rescue Errno::EPIPE
+    rescue Errno::EPIPE, IOError
       close
     end
 
