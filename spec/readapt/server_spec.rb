@@ -20,7 +20,7 @@ RSpec.describe Readapt::Server do
       object.extend Readapt::Server
       stdin.close
       object.receiving "A late message"
-      Process.wait thr[:pid]
+      Process.kill "KILL", thr[:pid]
     }.not_to raise_error
   end
 end
