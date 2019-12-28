@@ -13,7 +13,7 @@ module Readapt
 
     attr_reader :file
 
-    def initialize machine = Machine.new
+    def initialize
       @stack = []
       @frames = {}
       @running = false
@@ -22,7 +22,6 @@ module Readapt
       @config = {}
       @original_argv = ARGV.clone
       @original_prog = $0
-      @machine = machine
       @breakpoints = {}
     end
 
@@ -75,14 +74,12 @@ module Readapt
     rescue StandardError => e
       STDERR.puts "[#{e.class}] #{e.message}"
       STDERR.puts e.backtrace.join("\n")
-    # rescue SystemExit
-      # Ignore
     ensure
       Monitor.stop
       @running = false
       set_original_args
-      STDOUT.flush
-      STDERR.flush
+      STDOUT.flush #unless STDOUT.closed?
+      STDERR.flush #unless STDERR.closed?
       changed
       send_event 'terminated', nil
     end
@@ -211,11 +208,7 @@ module Readapt
     end
 
     def shutdown
-      # HACK: Wait a moment to make sure the output is flushed
-      # @todo Find a better way
-      # sleep 1
-      @machine.stop
-      # exit
+      exit
     end
 
     def send_event event, data, wait = false
