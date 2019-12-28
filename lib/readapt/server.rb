@@ -18,11 +18,5 @@ module Readapt
     rescue Errno::EPIPE, IOError
       close
     end
-
-    def closing
-      Process.kill "KILL", Server.target_pid
-    rescue Errno::ESRCH
-      # Ignore
-    end
   end
 end

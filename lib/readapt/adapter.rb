@@ -42,7 +42,6 @@ module Readapt
 
     def closing
       @@debugger.delete_observer(self)
-      write "#{open_message}__TERMINATE__#{close_message}"
     end
 
     def receiving data
@@ -58,6 +57,7 @@ module Readapt
       json = obj.to_json
       envelope = "#{open_message}Content-Length: #{json.bytesize}\r\n\r\n#{json}#{close_message}"
       write envelope
+      write "#{open_message}__TERMINATE__#{close_message}" if event == 'terminated'
     end
 
     private

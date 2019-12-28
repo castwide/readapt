@@ -53,7 +53,7 @@ module Readapt
         graceful_shutdown machine
       end
       machine.run do
-        debugger = Readapt::Debugger.new(machine)
+        debugger = Readapt::Debugger.new
         Readapt::Adapter.host debugger
         machine.prepare Backport::Server::Stdio.new(input: STDIN, output: STDERR, adapter: Readapt::Adapter)
       end
@@ -85,6 +85,13 @@ module Readapt
       error = Backport::Server::Stdio.new(input: stderr, output: stdin, adapter: Readapt::Error)
       machine.prepare output
       machine.prepare error
+      at_exit do
+        begin
+          Process.kill 'KILL', thr[:pid]
+        rescue Errno::ESRCH
+          # Ignore
+        end
+      end
     end
 
     # @param machine [Backport::Machine]
