@@ -46,13 +46,13 @@ module Readapt
       STDERR.sync = true
       Readapt::Adapter.procid = procid
       machine = Backport::Machine.new
+      Signal.trap("INT") do
+        graceful_shutdown machine
+      end
+      Signal.trap("TERM") do
+        graceful_shutdown machine
+      end
       machine.run do
-        Signal.trap("INT") do
-          graceful_shutdown
-        end
-        Signal.trap("TERM") do
-          graceful_shutdown
-        end
         debugger = Readapt::Debugger.new(machine)
         Readapt::Adapter.host debugger
         machine.prepare Backport::Server::Stdio.new(input: STDIN, output: STDERR, adapter: Readapt::Adapter)
@@ -61,14 +61,16 @@ module Readapt
 
     private
 
+    # @param machine [Backport::Machine]
+    # @return [void]
     def prepare_machine machine
       STDOUT.sync = true
       STDERR.sync = true
       Signal.trap("INT") do
-        graceful_shutdown
+        graceful_shutdown machine
       end
       Signal.trap("TERM") do
-        graceful_shutdown
+        graceful_shutdown machine
       end
       procid = SecureRandom.hex(8)
       Readapt::Error.procid = procid
@@ -85,8 +87,10 @@ module Readapt
       machine.prepare error
     end
 
-    def graceful_shutdown
-      Backport.stop
+    # @param machine [Backport::Machine]
+    # @return [void]
+    def graceful_shutdown machine
+      machine.stop
       exit
     end
   end
