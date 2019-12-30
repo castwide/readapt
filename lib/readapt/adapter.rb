@@ -79,7 +79,9 @@ module Readapt
         write "#{open_message}#{envelope}#{close_message}"
         if data['command'] == 'disconnect'
           @@debugger.disconnect
-          close
+          # @todo It does not appear necessary to close the adapter after
+          #   disconnecting the debugger.
+          # close
         end
         return unless data['command'] == 'initialize'
         json = {

@@ -100,7 +100,7 @@ module Readapt
     end
 
     def clear_breakpoints source
-      @breakpoints.delete_if { |key, value|
+      @breakpoints.delete_if { |_key, value|
         value.source == source
       }
     end
