@@ -28,7 +28,7 @@ module Readapt
       end
       return if output.empty?
       send_event('output', {
-        output: data,
+        output: output,
         category: 'stderr'
       })
     end
