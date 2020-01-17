@@ -56,13 +56,14 @@ module Readapt
 
     def start
       ::Thread.new do
+        set_program_args
         run { load @file }
+        set_original_args
       end
     end
 
     def run
       # raise RuntimeError, 'Debugger is already running' if @running
-      set_program_args
       @running = true
       send_event('process', {
         name: @file
@@ -77,7 +78,6 @@ module Readapt
     ensure
       Monitor.stop
       @running = false
-      set_original_args
       STDOUT.flush #unless STDOUT.closed?
       STDERR.flush #unless STDERR.closed?
       changed
