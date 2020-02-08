@@ -27,10 +27,10 @@ module Readapt
                 result.push Variable.new("[#{idx}]", itm)
               end
             else
-              obj.instance_variables.each do |iv|
+              obj.instance_variables.sort.each do |iv|
                 result.push Variable.new(iv, obj.instance_variable_get(iv))
               end
-              obj.class.class_variables.each do |cv|
+              obj.class.class_variables.sort.each do |cv|
                 result.push Variable.new(cv, obj.class.class_variable_get(cv))
               end
             end
