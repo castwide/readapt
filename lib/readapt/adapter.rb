@@ -65,7 +65,6 @@ module Readapt
     # @param data [Hash]
     # @return [void]
     def process data
-      # @todo Better solution than nil frames
       message = Message.process(data, @@debugger)
       if data['seq']
         json = {
