@@ -1,3 +1,9 @@
+# 1.0.0 - February 9, 2020
+- Refactor server and target process communication
+- STDIO server support
+- Fix zombie process bugs
+- Sort variables alphabetically
+
 # 0.8.1 - November 14, 2019
 - Header name conflict in MacOS (#4)
 
