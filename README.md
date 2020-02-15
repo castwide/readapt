@@ -26,4 +26,12 @@ Run `readapt serve` to start the server. The default client connection is host 1
 
 ## Integrations
 
-Readapt is available for Visual Studio Code in the [Ruby Debug extension](https://marketplace.visualstudio.com/items?itemName=castwide.ruby-debug).
+Plug-ins and extensions using Readapt are available for the following editors:
+
+* **Visual Studio Code**
+    * Marketplace: https://marketplace.visualstudio.com/items?itemName=castwide.ruby-debug
+    * GitHub: https://github.com/castwide/vscode-ruby-debug
+
+* **Eclipse**
+    * Marketplace: https://marketplace.eclipse.org/content/ruby-solargraph
+    * GitHub: https://github.com/PyvesB/eclipse-solargraph
