@@ -1,3 +1,6 @@
+# 1.1.0 - September 13, 2020
+- Use 32-bit integers for variable and thread references (#6)
+ 
 # 1.0.0 - February 9, 2020
 - Refactor server and target process communication
 - STDIO server support
