@@ -36,7 +36,6 @@ module Readapt
     # @return [Readapt::Thread]
     def thread id
       Thread.find(id)
-      # References.get(id)
     end
 
     def threads
@@ -133,7 +132,6 @@ module Readapt
       elsif snapshot.event == :thread_end
         thr = thread(snapshot.thread_id)
         thr.control = :continue
-        # @threads.delete snapshot.thread_id
         send_event('thread', {
           reason: 'exited',
           threadId: snapshot.thread_id

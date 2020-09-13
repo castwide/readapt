@@ -14,7 +14,6 @@ static void thread_reference_free(void* data)
 	thread_reference_t* thr;
 
 	thr = data;
-	// stack_free(thr->calls);
 	stack_free(thr->frames);
 	free(thr);
 }
@@ -117,7 +116,6 @@ static VALUE thread_allocate_s(VALUE self)
 	data->depth = 0;
 	data->cursor = 0;
 	data->frames = stack_alloc(sizeof(frame_t), frame_free);
-	// data->calls = stack_alloc(sizeof(frame_t), NULL);
 	data->id = 0;
 	return TypedData_Wrap_Struct(self, &thread_reference_type, data);
 }
