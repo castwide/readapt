@@ -36,6 +36,7 @@ module Readapt
     # @return [Readapt::Thread]
     def thread id
       Thread.find(id)
+      # References.get(id)
     end
 
     def threads
@@ -120,6 +121,7 @@ module Readapt
     # return [void]
     def debug snapshot
       sleep 0.001 # @todo Trying to let thread data sync
+      References.clear
       if snapshot.event == :thread_begin || snapshot.event == :entry
         thr = Thread.find(snapshot.thread_id)
         thr.control = :continue

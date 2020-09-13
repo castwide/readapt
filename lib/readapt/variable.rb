@@ -16,7 +16,7 @@ module Readapt
 
     # @return [Integer]
     def reference
-      @reference ||= unstructured || object.object_id
+      @reference ||= unstructured || References.identify(object)
     end
 
     # @return [String]
