@@ -52,7 +52,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 	gc_disabled = rb_gc_disable();
 	thread_reference_build_frames(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
-		LONG2NUM(ptr->id),
+		INT2NUM(ptr->id),
 		rb_str_new_cstr(file),
 		INT2NUM(line),
 		ID2SYM(event)

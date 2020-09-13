@@ -6,7 +6,7 @@ RSpec.describe Readapt::Message::StackTrace do
       #   reference to the thread's frames in threads.c.
       GC.disable
       debugger = double(:Debugger)
-      allow(debugger).to receive(:thread) { Readapt::Thread.find(Thread.current.object_id) }
+      allow(debugger).to receive(:thread) { Readapt::Thread.all.first }
       arguments = {}
       message = Readapt::Message::StackTrace.new(arguments, debugger)
       message.run

@@ -6,6 +6,8 @@
 
 static VALUE c_Thread;
 static VALUE threads;
+static VALUE ids;
+static int next_id;
 
 static void thread_reference_free(void* data)
 {
@@ -37,12 +39,12 @@ static VALUE thread_reference_new(VALUE thr)
 {
 	thread_reference_t *data = malloc(sizeof(thread_reference_t));
 	VALUE obj = TypedData_Make_Struct(c_Thread, thread_reference_t, &thread_reference_type, data);
-	data->id = NUM2LONG(rb_funcall(thr, rb_intern("object_id"), 0));
+	data->id = next_id;
 	data->cursor = 0;
 	data->depth = 0;
 	data->control = rb_intern("continue");
 	data->frames = stack_alloc(sizeof(frame_t), frame_free);
-	// data->calls = stack_alloc(sizeof(frame_t), NULL);
+	next_id++;
 	return obj;
 }
 
@@ -65,20 +67,24 @@ VALUE thread_reference(VALUE thr)
 
 VALUE thread_reference_id(VALUE id)
 {
-	return rb_hash_aref(threads, id);
+	return rb_hash_aref(ids, id);
 }
 
 VALUE thread_add_reference(VALUE thr)
 {
 	VALUE ref;
+	thread_reference_t *ptr;
 
 	ref = thread_reference_new(thr);
+	ptr = thread_reference_pointer(ref);
 	rb_hash_aset(threads, rb_obj_id(thr), ref);
+	rb_hash_aset(ids, INT2NUM(ptr->id), ref);
 	return ref;
 }
 
 VALUE thread_delete_reference(VALUE thr)
 {
+	// TODO: Do we need to delete from ids here?
 	return rb_hash_delete(threads, rb_obj_id(thr));
 }
 
@@ -101,6 +107,7 @@ void thread_pause()
 void thread_clear()
 {
 	rb_funcall(threads, rb_intern("clear"), 0);
+	rb_funcall(ids, rb_intern("clear"), 0);
 }
 
 static VALUE thread_allocate_s(VALUE self)
@@ -127,7 +134,7 @@ static VALUE thread_find_s(VALUE self, VALUE id)
 
 static VALUE thread_include_s(VALUE self, VALUE id)
 {
-	return rb_funcall(threads, rb_intern("include?"), 1, id);
+	return rb_funcall(ids, rb_intern("include?"), 1, id);
 }
 
 static VALUE thread_id_m(VALUE self)
@@ -167,17 +174,14 @@ void thread_reference_build_frames(thread_reference_t *ptr)
 
 void thread_reference_clear_frames(thread_reference_t *ptr)
 {
-	// TODO This is probably suboptimal
-	// while (ptr->frames->size > 0)
-	// {
-	// 	stack_pop(ptr->frames);
-	// }
 	stack_free(ptr->frames);
 	ptr->frames = stack_alloc(sizeof(frame_t), frame_free);
 }
 
 void initialize_threads(VALUE m_Readapt)
 {
+	next_id = 1;
+
 	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cData);
 	rb_define_alloc_func(c_Thread, thread_allocate_s);
 	rb_define_method(c_Thread, "id", thread_id_m, 0);
@@ -188,4 +192,6 @@ void initialize_threads(VALUE m_Readapt)
 
 	threads = rb_hash_new();
 	rb_global_variable(&threads);
+	ids = rb_hash_new();
+	rb_global_variable(&ids);
 }

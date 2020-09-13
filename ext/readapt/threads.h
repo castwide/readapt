@@ -6,7 +6,7 @@
 #include "stack.h"
 
 typedef struct thread_reference_struct {
-	long id;
+	int id;
 	int cursor;
 	int depth;
 	ID control;
