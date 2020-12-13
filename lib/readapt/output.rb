@@ -6,7 +6,7 @@ module Readapt
 
     def receiving data
       send_event('output', {
-        output: data,
+        output: data.force_encoding('utf-8'),
         category: 'stdout'
       })
     end
