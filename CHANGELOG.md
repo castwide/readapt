@@ -1,5 +1,6 @@
-# 1.1.1
+# 1.1.1 - December 15, 2020
 - Update rake
+- Fix Encoding::UndefinedConversionError (#8)
 
 # 1.1.0 - September 13, 2020
 - Use 32-bit integers for variable and thread references (#6)
