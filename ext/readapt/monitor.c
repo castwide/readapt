@@ -100,7 +100,6 @@ process_line_event(VALUE tracepoint, void *data)
 
 		arg = rb_tracearg_from_tracepoint(tracepoint);
 		tmp = rb_tracearg_path(arg);
-		// tp_file = normalize_path_new_cstr(StringValueCStr(tmp));
 		tp_file = StringValueCStr(tmp);
 		normalize_path(tp_file);
 		tmp = rb_tracearg_lineno(arg);
@@ -218,6 +217,9 @@ process_raise_event(VALUE tracepoint, void *data)
 	VALUE exception;
 	VALUE ref;
 	thread_reference_t *ptr;
+	VALUE tmp;
+	char *tp_file;
+	long tp_line;
 
 	ref = thread_current_reference();
 	if (ref != Qnil)
@@ -226,9 +228,14 @@ process_raise_event(VALUE tracepoint, void *data)
 		exception = rb_tracearg_raised_exception(arg);
 		if (rb_class_inherited_p(rb_obj_class(exception), rb_eStandardError)) {
 			ptr = thread_reference_pointer(ref);
+			tmp = rb_tracearg_path(arg);
+			tp_file = StringValueCStr(tmp);
+			normalize_path(tp_file);
+			tmp = rb_tracearg_lineno(arg);
+			tp_line = NUM2INT(tmp);
 			monitor_debug(
-				"",
-				0,
+				tp_file,
+				tp_line,
 				tracepoint,
 				ptr,
 				rb_intern("raise")
