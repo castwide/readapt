@@ -14,6 +14,7 @@ static VALUE tpCall;
 static VALUE tpReturn;
 static VALUE tpThreadBegin;
 static VALUE tpThreadEnd;
+static VALUE tpRaise;
 static VALUE debugProc;
 static int firstLineEvent = 0;
 static char *entryFile;
@@ -210,6 +211,32 @@ process_thread_end_event(VALUE tracepoint, void *data)
 	}
 }
 
+static void
+process_raise_event(VALUE tracepoint, void *data)
+{
+	rb_trace_arg_t *arg;
+	VALUE exception;
+	VALUE ref;
+	thread_reference_t *ptr;
+
+	ref = thread_current_reference();
+	if (ref != Qnil)
+	{
+		arg = rb_tracearg_from_tracepoint(tracepoint);
+		exception = rb_tracearg_raised_exception(arg);
+		if (rb_class_inherited_p(rb_obj_class(exception), rb_eStandardError)) {
+			ptr = thread_reference_pointer(ref);
+			monitor_debug(
+				"",
+				0,
+				tracepoint,
+				ptr,
+				rb_intern("raise")
+			);
+		}
+	}
+}
+
 static VALUE
 monitor_enable_s(VALUE self, VALUE file)
 {
@@ -218,7 +245,7 @@ monitor_enable_s(VALUE self, VALUE file)
 
 	if (rb_block_given_p()) {
 		debugProc = rb_block_proc();
-		rb_global_variable(&debugProc);
+		// rb_global_variable(&debugProc);
 	} else {
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
@@ -250,6 +277,7 @@ monitor_enable_s(VALUE self, VALUE file)
 	rb_tracepoint_enable(tpReturn);
 	rb_tracepoint_enable(tpThreadBegin);
 	rb_tracepoint_enable(tpThreadEnd);
+	rb_tracepoint_enable(tpRaise);
 	return previous;
 }
 
@@ -264,6 +292,7 @@ monitor_disable_s(VALUE self)
 	rb_tracepoint_disable(tpReturn);
 	rb_tracepoint_disable(tpThreadBegin);
 	rb_tracepoint_disable(tpThreadEnd);
+	rb_tracepoint_disable(tpRaise);
 
 	free(entryFile);
 	entryFile = NULL;
@@ -304,6 +333,7 @@ void initialize_monitor(VALUE m_Readapt)
 	tpReturn = rb_tracepoint_new(Qnil, RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN | RUBY_EVENT_END | RUBY_EVENT_C_RETURN, process_return_event, NULL);
 	tpThreadBegin = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_BEGIN, process_thread_begin_event, NULL);
 	tpThreadEnd = rb_tracepoint_new(Qnil, RUBY_EVENT_THREAD_END, process_thread_end_event, NULL);
+	tpRaise = rb_tracepoint_new(Qnil, RUBY_EVENT_RAISE, process_raise_event, NULL);
 	debugProc = Qnil;
 
 	id_continue = rb_intern("continue");
@@ -316,4 +346,7 @@ void initialize_monitor(VALUE m_Readapt)
 	rb_global_variable(&tpReturn);
 	rb_global_variable(&tpThreadBegin);
 	rb_global_variable(&tpThreadEnd);
+	rb_global_variable(&tpRaise);
+
+	rb_global_variable(&debugProc);
 }
