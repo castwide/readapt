@@ -1,30 +1,30 @@
 #ifndef LOOKUP_TABLE_H_
 #define LOOKUP_TABLE_H_
 
-typedef struct ht_long_array
+typedef struct lt_long_array
 {
     long *items;
     long size;
-} ht_long_array;
+} lt_long_array;
 
-// ht_item is an item in the hash table
-typedef struct ht_item
+// lt_item is an item in the lookup table
+typedef struct lt_item
 {
     char *key;
-    ht_long_array *value;
-} ht_item;
+    lt_long_array *value;
+} lt_item;
 
-typedef struct ht_hash_table
+typedef struct lt_lookup_table
 {
     long size;
-    ht_item **items;
-} ht_hash_table;
+    lt_item **items;
+} lt_lookup_table;
 
-ht_hash_table *ht_new();
-void ht_del_hash_table(ht_hash_table *ht);
+lt_lookup_table *lt_new();
+void lt_del_lookup_table(lt_lookup_table *ht);
 
-void ht_insert(ht_hash_table *ht, char *key, const long *value, const long size);
-ht_long_array *ht_search(ht_hash_table *ht, char *key);
-void ht_delete(ht_hash_table *h, char *key);
+void lt_insert(lt_lookup_table *ht, char *key, const long *value, const long size);
+lt_long_array *lt_search(lt_lookup_table *ht, char *key);
+void lt_delete(lt_lookup_table *h, char *key);
 
 #endif // LOOKUP_TABLE_H_

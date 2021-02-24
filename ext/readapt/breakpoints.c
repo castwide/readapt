@@ -2,7 +2,7 @@
 #include "lookup_table.h"
 
 static VALUE m_Breakpoints;
-ht_hash_table *ht;
+lt_lookup_table *ht;
 
 void breakpoints_set(char *file, long *lines)
 {
@@ -20,7 +20,7 @@ static VALUE breakpoints_set_s(VALUE self, VALUE file, VALUE lines)
     {
         ll[i] = NUM2LONG(rb_ary_entry(lines, i));
     }
-    ht_insert(ht, StringValueCStr(file), ll, length);
+    lt_insert(ht, StringValueCStr(file), ll, length);
     free(ll);
     return Qnil;
 }
@@ -37,10 +37,10 @@ static VALUE breakpoints_delete_s(VALUE self, VALUE file)
 
 int breakpoints_match(char *file, long line)
 {
-    ht_long_array *lines;
+    lt_long_array *lines;
     long i;
 
-    lines = ht_search(ht, file);
+    lines = lt_search(ht, file);
     if (lines != NULL)
     {
         for (i = 0; i < lines->size; i++)
@@ -61,8 +61,8 @@ static VALUE breakpoints_match_s(VALUE self, VALUE file, VALUE line)
 
 static VALUE breakpoints_clear_s(VALUE self)
 {
-    ht_del_hash_table(ht);
-    ht = ht_new();
+    lt_del_lookup_table(ht);
+    ht = lt_new();
     return Qnil;
 }
 
@@ -79,5 +79,5 @@ void initialize_breakpoints(VALUE m_Readapt)
     rb_define_singleton_method(m_Breakpoints, "match", breakpoints_match_s, 2);
     rb_define_singleton_method(m_Breakpoints, "clear", breakpoints_clear_s, 0);
 
-    ht = ht_new(); // TODO Need to free?
+    ht = lt_new(); // TODO Need to free?
 }
