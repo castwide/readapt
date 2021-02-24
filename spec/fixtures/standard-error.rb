@@ -1,0 +1,1 @@
+raise StandardError, 'StandardError'

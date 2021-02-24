@@ -1,3 +1,6 @@
+# 1.2.0
+- Pause on exceptions
+
 # 1.1.1 - December 15, 2020
 - Update rake
 - Fix Encoding::UndefinedConversionError (#8)
