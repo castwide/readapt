@@ -1,5 +1,5 @@
-#ifndef HASH_TABLE_H_
-#define HASH_TABLE_H_
+#ifndef LOOKUP_TABLE_H_
+#define LOOKUP_TABLE_H_
 
 typedef struct ht_long_array
 {
@@ -27,4 +27,4 @@ void ht_insert(ht_hash_table *ht, char *key, const long *value, const long size)
 ht_long_array *ht_search(ht_hash_table *ht, char *key);
 void ht_delete(ht_hash_table *h, char *key);
 
-#endif // HASH_TABLE_H_
+#endif // LOOKUP_TABLE_H_

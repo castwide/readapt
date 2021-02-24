@@ -1,5 +1,5 @@
 #include "ruby.h"
-#include "hash_table.h"
+#include "lookup_table.h"
 
 static VALUE m_Breakpoints;
 ht_hash_table *ht;

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hash_table.h"
+#include "lookup_table.h"
 
 static ht_long_array *copy_array(const long *value, const long size)
 {
