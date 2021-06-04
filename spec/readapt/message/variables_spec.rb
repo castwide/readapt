@@ -9,14 +9,19 @@ RSpec.describe Readapt::Message::Variables do
     @frame = nil
   end
 
+  after :each do
+    Readapt::References.clear
+  end
+
   it "finds local variables in frames" do
     bind = proc {
       local_variable = 'string'
       send(:binding)
     }.call
     @frame = Readapt::Frame.new(nil, 0, bind)
+    id = Readapt::References.identify(@frame)
     arguments = {
-      'variablesReference' => bind.object_id
+      'variablesReference' => id
     }
     message = Readapt::Message::Variables.new(arguments, @debugger)
     message.run
@@ -44,8 +49,9 @@ RSpec.describe Readapt::Message::Variables do
       end
     end
     object = klass.new
+    id = Readapt::References.identify(object)
     arguments = {
-      'variablesReference' => object.object_id
+      'variablesReference' => id
     }
     message = Readapt::Message::Variables.new(arguments, @debugger)
     message.run
@@ -56,8 +62,9 @@ RSpec.describe Readapt::Message::Variables do
 
   it 'finds class variables' do
     object = TestCVar.new
+    id = Readapt::References.identify(object)
     arguments = {
-      'variablesReference' => object.object_id
+      'variablesReference' => id
     }
     message = Readapt::Message::Variables.new(arguments, @debugger)
     message.run
@@ -78,8 +85,9 @@ RSpec.describe Readapt::Message::Variables do
 
   it 'finds array elements' do
     object = ['one']
+    id = Readapt::References.identify(object)
     arguments = {
-      'variablesReference' => object.object_id
+      'variablesReference' => id
     }
     message = Readapt::Message::Variables.new(arguments, @debugger)
     message.run
@@ -91,8 +99,9 @@ RSpec.describe Readapt::Message::Variables do
 
   it 'finds hash elements' do
     object = {'one' => 'element'}
+    id = Readapt::References.identify(object)
     arguments = {
-      'variablesReference' => object.object_id
+      'variablesReference' => id
     }
     message = Readapt::Message::Variables.new(arguments, @debugger)
     message.run

@@ -16,7 +16,7 @@ module Readapt
           if frame != Frame::NULL_FRAME && !frame.nil?
             frame.locals
           else
-            obj = object_reference
+            obj = References.get(ref)
             result = []
             if obj.is_a?(Array)
               obj.each_with_index do |itm, idx|
@@ -47,14 +47,6 @@ module Readapt
             }
           end
         })
-      end
-
-      private
-
-      def object_reference
-        ObjectSpace._id2ref(arguments['variablesReference'])
-      rescue RangeError
-        nil
       end
     end
   end
