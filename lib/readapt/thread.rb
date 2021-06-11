@@ -9,6 +9,7 @@ module Readapt
     # @return [Symbol]
     attr_accessor :control
 
+    # @return [String]
     def name
       @name ||= begin
         @@next_id += 1
@@ -16,6 +17,7 @@ module Readapt
       end
     end
 
+    # @return [Object]
     def object
       ObjectSpace._id2ref(id)
     end

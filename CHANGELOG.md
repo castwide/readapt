@@ -1,5 +1,9 @@
-# 1.2.0
+# 1.3.0 - June 3, 2021
+- Variables message reads class/instance variables
+
+# 1.2.0 - February 24, 2021
 - Pause on exceptions
+- Refactored lookup tables
 
 # 1.1.1 - December 15, 2020
 - Update rake

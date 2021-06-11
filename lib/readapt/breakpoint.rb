@@ -13,6 +13,7 @@ module Readapt
       @hit_condition = hit_condition
     end
 
+    # @return [Integer]
     def hit_cursor
       @hit_cursor ||= 0
     end

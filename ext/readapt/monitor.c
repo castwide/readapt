@@ -136,8 +136,6 @@ process_line_event(VALUE tracepoint, void *data)
 		{
 			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
-
-		// free(tp_file);
 	}
 }
 
@@ -252,7 +250,6 @@ monitor_enable_s(VALUE self, VALUE file)
 
 	if (rb_block_given_p()) {
 		debugProc = rb_block_proc();
-		// rb_global_variable(&debugProc);
 	} else {
 		rb_raise(rb_eArgError, "must be called with a block");
 	}
