@@ -5,7 +5,15 @@ module Readapt
     class Initialize < Base
       def run
         set_body({
-          supportsConfigurationDoneRequest: true
+          supportsConfigurationDoneRequest: true,
+          exceptionBreakpointFilters: [
+            {
+              filter: 'raise',
+              label: 'Pause on raised exceptions',
+              description: 'The debugger will pause when the exception is raised, regardless of whether it is subsequently rescued.',
+              default: false
+            }
+          ]
         })
       end
     end

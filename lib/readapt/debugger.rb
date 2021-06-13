@@ -13,6 +13,8 @@ module Readapt
 
     attr_reader :file
 
+    attr_writer :pause_on_raise
+
     def initialize
       @stack = []
       @frames = {}
@@ -31,6 +33,10 @@ module Readapt
       @request = request
     rescue LoadError => e
       STDERR.puts e.message
+    end
+
+    def pause_on_raise?
+      @pause_on_raise ||= false
     end
 
     # @return [Readapt::Thread]
@@ -173,6 +179,8 @@ module Readapt
               confirmed_pause = false
             end
           end
+        elsif snapshot.event == :raise && !pause_on_raise?
+          confirmed_pause = false
         end
         if confirmed_pause
           changed
