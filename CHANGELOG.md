@@ -1,5 +1,6 @@
 # 1.4.0 - June 14, 2021
 - Configurable exception breakpoints
+- Update backport gem
 
 # 1.3.0 - June 3, 2021
 - Variables message reads class/instance variables
