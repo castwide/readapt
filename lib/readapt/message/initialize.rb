@@ -9,8 +9,8 @@ module Readapt
           exceptionBreakpointFilters: [
             {
               filter: 'raise',
-              label: 'Pause on raised exceptions',
-              description: 'The debugger will pause when the exception is raised, regardless of whether it is subsequently rescued.',
+              label: 'Break on raised exceptions',
+              description: 'The debugger will break when an exception is raised, regardless of whether it is subsequently rescued.',
               default: false
             }
           ]
