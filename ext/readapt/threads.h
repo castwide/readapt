@@ -10,7 +10,8 @@ typedef struct thread_reference_struct {
 	int cursor;
 	int depth;
 	ID control;
-	readapt_stack_t *frames;
+    long thread_object_id;
+    readapt_stack_t *frames;
 } thread_reference_t;
 
 void initialize_threads(VALUE);

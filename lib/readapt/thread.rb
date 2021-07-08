@@ -4,22 +4,17 @@ require 'ostruct'
 
 module Readapt
   class Thread
-    @@next_id = 0
-
     # @return [Symbol]
     attr_accessor :control
 
     # @return [String]
     def name
-      @name ||= begin
-        @@next_id += 1
-        "Thread #{@@next_id}"
-      end
+      @name ||= "Thread #{id}"
     end
 
-    # @return [Object]
+    # # @return [Object]
     def object
-      ObjectSpace._id2ref(id)
+      ObjectSpace._id2ref(thread_object_id)
     end
   end
 end

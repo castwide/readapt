@@ -43,7 +43,8 @@ static VALUE thread_reference_new(VALUE thr)
 	data->depth = 0;
 	data->control = rb_intern("continue");
 	data->frames = stack_alloc(sizeof(frame_t), frame_free);
-	next_id++;
+    data->thread_object_id = NUM2LONG(rb_obj_id(thr));
+    next_id++;
 	return obj;
 }
 
@@ -165,6 +166,15 @@ static VALUE frames_m(VALUE self)
 	return ary;
 }
 
+static VALUE thread_object_id_m(VALUE self)
+{
+	thread_reference_t *data;
+
+    data = thread_reference_pointer(self);
+    return LONG2NUM(data->thread_object_id);
+    // return rb_hash_aref(ids, INT2NUM(data->id))->object_id;
+}
+
 void thread_reference_build_frames(thread_reference_t *ptr)
 {
 	inspector_inspect(ptr);
@@ -184,7 +194,8 @@ void initialize_threads(VALUE m_Readapt)
 	rb_define_alloc_func(c_Thread, thread_allocate_s);
 	rb_define_method(c_Thread, "id", thread_id_m, 0);
 	rb_define_method(c_Thread, "frames", frames_m, 0);
-	rb_define_singleton_method(c_Thread, "all", thread_all_s, 0);
+    rb_define_method(c_Thread, "thread_object_id", thread_object_id_m, 0);
+    rb_define_singleton_method(c_Thread, "all", thread_all_s, 0);
 	rb_define_singleton_method(c_Thread, "find", thread_find_s, 1);
 	rb_define_singleton_method(c_Thread, "include?", thread_include_s, 1);
 
