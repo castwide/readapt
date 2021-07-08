@@ -1,3 +1,7 @@
+# 1.4.1 - July 8, 2021
+- Thread object handling
+- Rescue StandardError instead of Exception
+
 # 1.4.0 - June 14, 2021
 - Configurable exception breakpoints
 - Update backport gem

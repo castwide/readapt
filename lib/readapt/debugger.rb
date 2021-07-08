@@ -125,7 +125,6 @@ module Readapt
     # @param [Snapshot]
     # return [void]
     def debug snapshot
-      sleep 0.001 # @todo Trying to let thread data sync
       References.clear
       if snapshot.event == :thread_begin || snapshot.event == :entry
         thr = Thread.find(snapshot.thread_id)
@@ -155,7 +154,7 @@ module Readapt
               unless bnd.eval(bp.condition)
                 confirmed_pause = false
               end
-            rescue Exception => e
+            rescue StandardError => e
               STDERR.puts "Breakpoint condition raised an error"
               STDERR.puts "#{snapshot.file}:#{snapshot.line} - `#{bp.condition}`"
               STDERR.puts "[#{e.class}] #{e.message}"
@@ -172,7 +171,7 @@ module Readapt
               else
                 confirmed_pause = false
               end
-            rescue Exception => e
+            rescue StandardError => e
               STDERR.puts "Breakpoint condition raised an error"
               STDERR.puts "#{snapshot.file}:#{snapshot.line} - `#{bp.condition}`"
               STDERR.puts "[#{e.class}] #{e.message}"

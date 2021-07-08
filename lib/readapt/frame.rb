@@ -11,7 +11,7 @@ module Readapt
   class Frame
     def evaluate code
       frame_binding.eval(code).inspect
-    rescue Exception => e
+    rescue StandardError => e
       "[#{e.class}] #{e.message}"
     end
 
