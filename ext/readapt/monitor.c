@@ -51,7 +51,7 @@ monitor_debug(const char *file, const long line, VALUE tracepoint, thread_refere
 
 	// Disable garbage collection to avoid segfaults in Frame#frame_binding
 	gc_disabled = rb_gc_disable();
-	thread_reference_build_frames(ptr);
+    thread_reference_build_frames(ptr);
 	snapshot = rb_funcall(c_Snapshot, rb_intern("new"), 4,
 		INT2NUM(ptr->id),
 		rb_str_new_cstr(file),
@@ -103,7 +103,7 @@ process_line_event(VALUE tracepoint, void *data)
 		tp_file = StringValueCStr(tmp);
 		normalize_path(tp_file);
 		tmp = rb_tracearg_lineno(arg);
-		tp_line = NUM2INT(tmp);
+		tp_line = NUM2LONG(tmp);
 
 		dapEvent = id_continue;
 		if (!firstLineEvent)
@@ -125,6 +125,7 @@ process_line_event(VALUE tracepoint, void *data)
 		}
 		else if (breakpoints_match(tp_file, tp_line))
 		{
+            rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("found a breakpoint"));
 			dapEvent = rb_intern("breakpoint");
 		}
 		else if (ptr->control == id_entry)
@@ -134,8 +135,13 @@ process_line_event(VALUE tracepoint, void *data)
 
 		if (dapEvent != id_continue)
 		{
+            rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("handling a breakpoint"));
 			monitor_debug(tp_file, tp_line, tracepoint, ptr, dapEvent);
 		}
+        else
+        {
+            rb_funcall(rb_stderr, rb_intern("puts"), 1, rb_str_new_cstr("never mind"));
+        }
 	}
 }
 

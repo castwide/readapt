@@ -1,3 +1,6 @@
+# 1.4.2 - July 23, 2021
+- Fix path normalizing in Windows
+
 # 1.4.1 - July 8, 2021
 - Thread object handling
 - Rescue StandardError instead of Exception

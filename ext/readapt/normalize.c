@@ -20,9 +20,12 @@ void normalize_path(char *str)
 
     if (isWindows)
     {
-        str[0] = toupper(str[0]);
+        if (isalpha(str[0]))
+        {
+            str[0] = toupper(str[0]);
+        }
         len = strlen(str);
-        for (i = 2; i < len; i++)
+        for (i = 0; i < len; i++)
         {
             if (str[i] == '\\')
             {
