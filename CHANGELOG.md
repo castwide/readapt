@@ -1,3 +1,6 @@
+# 1.4.3 - July 23, 2021
+- Remove unneeded debug output
+
 # 1.4.2 - July 23, 2021
 - Fix path normalizing in Windows
 
