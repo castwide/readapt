@@ -8,7 +8,8 @@ module Readapt
       def run
         ref = arguments['frameId']
         frame = debugger.frame(ref)
-        result = frame.evaluate(arguments['expression'])
+        expression = arguments['expression']
+        result = ref ? frame.evaluate(expression) : eval(expression)
         set_body(
           result: result
         )
