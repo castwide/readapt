@@ -1,4 +1,4 @@
-# 1.4.4 - May 26, 2022
+# 1.4.4 - May 27, 2022
 - Evaluate expressions in global scope when frame is unavailable
 
 # 1.4.3 - July 23, 2021
