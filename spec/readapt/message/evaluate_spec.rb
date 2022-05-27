@@ -8,7 +8,7 @@ RSpec.describe Readapt::Message::Evaluate do
     @frame = Readapt::Frame.new(nil, 0, bind)
     allow(@debugger).to receive(:frame) { @frame }
     arguments = {
-      'expression' => '[value]'
+      'expression' => '[value]',
       'frameId' => 99
     }
     message = Readapt::Message::Evaluate.new(arguments, @debugger)
