@@ -36,6 +36,6 @@ jobs:
         bundler-cache: false
     - run: bundle install
     - name: Compile native extension
-    - run: rake compile
+      run: rake compile
     - name: Run tests
       run: bundle exec rspec
