@@ -35,8 +35,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: false
     - run: bundle install
+    - name: Compile native extension
     - run: rake compile
-    - name: Set up yardocs
-      run: bundle exec yard gems
     - name: Run tests
       run: bundle exec rspec
