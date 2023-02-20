@@ -190,7 +190,7 @@ void initialize_threads(VALUE m_Readapt)
 {
 	next_id = 1;
 
-	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cData);
+	c_Thread = rb_define_class_under(m_Readapt, "Thread", rb_cObject);
 	rb_define_alloc_func(c_Thread, thread_allocate_s);
 	rb_define_method(c_Thread, "id", thread_id_m, 0);
 	rb_define_method(c_Thread, "frames", frames_m, 0);

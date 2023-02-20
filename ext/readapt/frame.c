@@ -128,7 +128,7 @@ VALUE frame_binding_m(VALUE self)
 
 void initialize_frame(VALUE m_Readapt)
 {
-    c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cData);
+    c_Frame = rb_define_class_under(m_Readapt, "Frame", rb_cObject);
     rb_define_alloc_func(c_Frame, frame_allocate_s);
     rb_define_method(c_Frame, "initialize", frame_initialize_m, 3);
     rb_define_method(c_Frame, "file", frame_file_m, 0);
