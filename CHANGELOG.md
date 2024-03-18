@@ -1,3 +1,6 @@
+# 2.0.0
+- Extension update for Ruby 3.3
+
 # 1.4.4 - May 27, 2022
 - Evaluate expressions in global scope when frame is unavailable
 
