@@ -1,4 +1,4 @@
-# 2.0.0
+# 2.0.0 - March 18, 2024
 - Extension update for Ruby 3.3
 
 # 1.4.4 - May 27, 2022
