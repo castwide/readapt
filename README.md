@@ -2,7 +2,7 @@
 
 A Ruby debugger that supports the [Debug Adapter Protocol](https://microsoft.github.io/debug-adapter-protocol/specification).
 
-*This gem is currently in early development*.
+**This project is no longer maintained.** As of Ruby 3, the native `rdbg` debugger is capable of connecting to debug adapters, so Readapt is no longer necessary. For Visual Studio Code, the [VSCode rdbg Ruby Debugger](https://marketplace.visualstudio.com/items?itemName=KoichiSasada.vscode-rdbg) is a solid alternative.
 
 ## Installation
 
